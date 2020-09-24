@@ -15,7 +15,11 @@ var requests_1 = require("./requests");
 var readline_sync_1 = require("readline-sync");
 var consts_1 = require("./consts");
 var extractOpenId = function (str) { var _a; return str.length === 32 ? str : (_a = str.match("openid=(.*)(?=&)")) === null || _a === void 0 ? void 0 : _a[1]; };
-var openId = extractOpenId(readline_sync_1.question("Paste openId or URL here: "));
+var args = process.argv.slice(2);
+var openId = 'undefined';
+if (args.length > 0){
+    openId = extractOpenId(args[0]);
+}
 var signIdSet = new Set();
 if (openId) {
     setInterval(function () {
