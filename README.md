@@ -13,8 +13,8 @@
 ## Features
 
 * Multi-mode sign-in support: normal, GPS and QR code
-* System Nofication (test on macOS & gnome)
-* Active Development
+* System-level notification support (test on windows 10 & macOS & gnome)
+* Active development
 * <del>Docker support</del>
 
 ## Install
@@ -58,9 +58,9 @@ or with environments:
 env OPEN_ID=${your openId} yarn start
 ```
 
-For normal & GPS mode, the process is automatic. 
+For normal & GPS sign-in, the process is automatic. 
 
-For QR code mode, you're expected to scan a generated QR code manually from your console. **The script WILL EXIT INSTANTLY when success, because a QR scan via WeChat causes the update of `openId`. You have to reacquire your new `openId` and run this scirpt again!**
+For QR code sign-in, you're expected to scan a generated QR code manually from your console. **The script WILL EXIT INSTANTLY when success, because a QR scan via WeChat causes the update of `openId`. You have to reacquire your new `openId` and run this scirpt again!**
 
 ## Author
 
