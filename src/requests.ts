@@ -1,8 +1,10 @@
 import fetch from "node-fetch";
 
-export interface IActiveSignResp {
+export interface IBasicSignInfo {
   courseId: number;
   signId: number;
+}
+export interface IActiveSignResp extends IBasicSignInfo {
   isGPS?: 1 | 0;
   isQR?: 1 | 0;
 }
@@ -19,8 +21,7 @@ export const activeSign = (openId: string) =>
         "Content-Type": "application/json",
         openId,
         "If-None-Match": '"38-djBNGTNDrEJXNs9DekumVQ"',
-        Referrer:
-          "https://v18.teachermate.cn/wechat-pro-ssr/student/sign?openid=613600e8b9693641a8f6237ec44c20cf",
+        Referrer: `https://v18.teachermate.cn/wechat-pro-ssr/student/sign?openid=${openId}`,
       },
       method: "GET",
     }
@@ -44,10 +45,22 @@ export const signIn = (openId: string, query: ISignInQuery) =>
         "Accept-Language": "zh-CN,en-US;q=0.7,en;q=0.3",
         "Content-Type": "application/json",
         openId,
-        Referrer:
-          "https://v18.teachermate.cn/wechat-pro-ssr/student/sign?openid=613600e8b9693641a8f6237ec44c20cf",
+        Referrer: `https://v18.teachermate.cn/wechat-pro-ssr/student/sign?openid=${openId}`,
       },
       body: JSON.stringify(query),
       method: "POST",
     }
   );
+
+export const tryShortenURL = async (url: string) => {
+  try {
+    const resp = await fetch(
+      `https://v1.alapi.cn/api/url?url=${encodeURIComponent(url)}`
+    );
+    const json = await resp.json();
+    return json.data.short_url;
+  } catch (err) {
+    console.log(err)
+    return url;
+  }
+};
