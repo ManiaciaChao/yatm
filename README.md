@@ -32,7 +32,7 @@ yarn build
 
 **Edit your `config.json` first:**
 
-```json
+```javascript
 {
   "interval": 3000, // 轮询间隔
   // 用于 GPS 签到（火星坐标）
