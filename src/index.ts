@@ -1,9 +1,13 @@
-import { activeSign, IActiveSignResp, ISignInQuery, signIn } from "./requests";
 import { question } from "readline-sync";
+import { notify } from "node-notifier";
+import { activeSign, IActiveSignResp, ISignInQuery, signIn } from "./requests";
 import { config } from "./consts";
+import { title } from "process";
 
 const extractOpenId = (str: string) =>
   str.length === 32 ? str : str.match("openid=(.*)(?=&)")?.[1];
+const sendNotificaition = (message: string) =>
+  notify({ message, title: "yatm" });
 
 const openId = extractOpenId(question("Paste openId or URL here: "));
 const signIdSet = new Set<number>();
@@ -21,6 +25,7 @@ if (openId) {
           throw "already signed";
         }
         console.log("current sign:", data);
+        sendNotificaition("Info: a sign is going on!");
         let signInQuery: ISignInQuery = { courseId, signId };
         if (data.isGPS) {
           signInQuery = { ...signInQuery, lat: 30, lon: 30 };
@@ -32,8 +37,14 @@ if (openId) {
               signIdSet.add(signId);
             }
             console.log(data);
+          })
+          .catch((e) => {
+            console.log(e);
+            sendNotificaition("Error: failed to sign in. See output plz.");
           });
       })
-      .catch((e) => console.log(e));
+      .catch((e) => {
+        console.log(e);
+      });
   }, config.interval);
 }
