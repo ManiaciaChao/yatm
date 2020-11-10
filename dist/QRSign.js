@@ -173,35 +173,3 @@ var QRSign = /** @class */ (function () {
     return QRSign;
 }());
 exports.QRSign = QRSign;
-var sign = new QRSign({ courseId: 1164213, signId: 1983462 });
-// [
-//   {
-//     channel: "/meta/handshake",
-//     version: "1.0",
-//     supportedConnectionTypes: [
-//       "websocket",
-//       "eventsource",
-//       "long-polling",
-//       "cross-origin-long-polling",
-//       "callback-polling",
-//     ],
-//     id: "1",
-//   },
-// ][
-//   {
-//     channel: "/meta/connect",
-//     clientId: "c6jlqzd5391xri99f3qt0a3xpa6uqur",
-//     connectionType: "long-polling",
-//     id: "2",
-//     advice: {
-//       timeout: 0,
-//     },
-//   }
-// ][
-//   {
-//     channel: "/meta/subscribe",
-//     clientId: "c6jlqzd5391xri99f3qt0a3xpa6uqur",
-//     subscription: "/attendance/1164213/1982993/qr",
-//     id: "3",
-//   }
-// ];
