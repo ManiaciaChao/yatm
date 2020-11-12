@@ -33,28 +33,31 @@ if (openId) {
             var signId = data.signId, courseId = data.courseId, isGPS = data.isGPS, isQR = data.isQR;
             if (!courseId || !signId) {
                 qrSign === null || qrSign === void 0 ? void 0 : qrSign.destory();
-                throw "No sign available";
+                throw "No sign-in available";
             }
             if (signedIdSet.has(signId)) {
-                throw "already signed";
+                throw "already signed in";
             }
-            sendNotificaition("Info: a sign is going on!");
+            sendNotificaition("Info: a sign-in is going on!");
             if (isQR) {
                 if (signId === lastSignId) {
                     return;
                 }
                 lastSignId = signId;
-                sendNotificaition("WARNING: QR sign is going on!");
+                sendNotificaition("WARNING: QR sign-in is going on!");
                 qrSign === null || qrSign === void 0 ? void 0 : qrSign.destory();
                 qrSign = new QRSign_1.QRSign({ courseId: courseId, signId: signId });
                 qrSign.start(function (result) {
+                    var prompt = "Signed in successfully. However, you need to re-run this script with NEW openid!";
                     console.log(result);
                     signedIdSet.add(signId);
+                    sendNotificaition(prompt);
+                    console.warn(prompt);
+                    process.exit(0);
                 });
-                console.warn("QR sign successfully. However, you need to re-run this script with NEW openid!");
             }
             else {
-                console.log("current sign:", data);
+                console.log("current sign-in:", data);
                 var signInQuery = { courseId: courseId, signId: signId };
                 if (isGPS) {
                     signInQuery = __assign(__assign({}, signInQuery), { lat: 30, lon: 30 });

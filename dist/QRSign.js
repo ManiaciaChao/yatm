@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.QRSign = void 0;
 var ws_1 = __importDefault(require("ws"));
 var qrcode_1 = require("qrcode");
-var requests_1 = require("./requests");
 var consts_1 = require("./consts");
 var QRType;
 (function (QRType) {
@@ -48,16 +47,9 @@ var QRSign = /** @class */ (function () {
                         console.log(message);
                         switch (data_1.type) {
                             case QRType.code: {
-                                if (consts_1.config.shortUrl) {
-                                    requests_1.tryShortenURL(data_1.qrUrl).then(function (url) {
-                                        qrcode_1.toString(url, { type: "terminal" }).then(function (qr) { return console.log(qr); });
-                                    });
-                                }
-                                else {
-                                    qrcode_1.toString(data_1.qrUrl, { type: "terminal" }).then(function (qr) {
-                                        return console.log(qr);
-                                    });
-                                }
+                                qrcode_1.toString(data_1.qrUrl, { type: "terminal" }).then(function (qr) {
+                                    return console.log(qr);
+                                });
                                 break;
                             }
                             case QRType.result: {

@@ -1,6 +1,6 @@
 import WebSocket from "ws";
 import { toString as toQR } from "qrcode";
-import { IBasicSignInfo, tryShortenURL } from "./requests";
+import { IBasicSignInfo } from "./requests";
 import { config } from "./consts";
 
 interface IServerMessage {
@@ -113,16 +113,9 @@ export class QRSign {
           console.log(message);
           switch (data.type) {
             case QRType.code: {
-              if (config.shortUrl) {
-                tryShortenURL(data.qrUrl!).then((url) => {
-                  toQR(url, { type: "terminal" }).then((qr) => console.log(qr));
-                });
-              } else {
-                toQR(data.qrUrl!, { type: "terminal" }).then((qr) =>
-                  console.log(qr)
-                );
-              }
-
+              toQR(data.qrUrl!, { type: "terminal" }).then((qr) =>
+                console.log(qr)
+              );
               break;
             }
             case QRType.result: {

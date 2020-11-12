@@ -26,31 +26,35 @@ if (openId) {
         const { signId, courseId, isGPS, isQR } = data;
         if (!courseId || !signId) {
           qrSign?.destory();
-          throw "No sign available";
+          throw "No sign-in available";
         }
         if (signedIdSet.has(signId)) {
-          throw "already signed";
+          throw "already signed in";
         }
 
-        sendNotificaition("Info: a sign is going on!");
+        sendNotificaition("Info: a sign-in is going on!");
 
         if (isQR) {
           if (signId === lastSignId) {
             return;
           }
           lastSignId = signId;
-          sendNotificaition("WARNING: QR sign is going on!");
+          sendNotificaition("WARNING: QR sign-in is going on!");
           qrSign?.destory();
           qrSign = new QRSign({ courseId, signId });
           qrSign.start((result) => {
+            const prompt =
+              "Signed in successfully. However, you need to re-run this script with NEW openid!";
+
             console.log(result);
             signedIdSet.add(signId);
+
+            sendNotificaition(prompt);
+            console.warn(prompt);
+            process.exit(0);
           });
-          console.warn(
-            "QR sign successfully. However, you need to re-run this script with NEW openid!"
-          );
         } else {
-          console.log("current sign:", data);
+          console.log("current sign-in:", data);
           let signInQuery: ISignInQuery = { courseId, signId };
           if (isGPS) {
             signInQuery = { ...signInQuery, lat: 30, lon: 30 };

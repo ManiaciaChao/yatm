@@ -52,15 +52,15 @@ export const signIn = (openId: string, query: ISignInQuery) =>
     }
   );
 
-export const tryShortenURL = async (url: string) => {
-  try {
-    const resp = await fetch(
-      `https://v1.alapi.cn/api/url?url=${encodeURIComponent(url)}`
-    );
-    const json = await resp.json();
-    return json.data.short_url;
-  } catch (err) {
-    console.log(err)
-    return url;
-  }
-};
+// export const tryShortenURL = async (url: string) => {
+//   try {
+//     const resp = await fetch(
+//       `https://v1.alapi.cn/api/url?url=${encodeURIComponent(url)}`
+//     );
+//     const json = await resp.json();
+//     return json.data.short_url;
+//   } catch (err) {
+//     console.log(err)
+//     return url;
+//   }
+// };
