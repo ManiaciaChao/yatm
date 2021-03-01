@@ -1,7 +1,7 @@
 import { question } from "readline-sync";
 import { notify } from "node-notifier";
 import { env } from "process";
-import { activeSign, IActiveSignResp, ISignInQuery, signIn } from "./requests";
+import { activeSign, ActiveSignResp, ISignInQuery, signIn } from "./requests";
 import { config } from "./consts";
 import { QRSign } from "./QRSign";
 
@@ -22,55 +22,68 @@ if (openId) {
   setInterval(() => {
     activeSign(openId)
       .then((data) => data.json())
-      .then((data: IActiveSignResp) => {
-        const { signId, courseId, isGPS, isQR } = data;
-        if (!courseId || !signId) {
+      .then((data: ActiveSignResp) => {
+        if (!data.length) {
           qrSign?.destory();
           throw "No sign-in available";
         }
-        if (signedIdSet.has(signId)) {
-          throw "already signed in";
+        const queue = [];
+        for (const sign of data) {
+          if (sign.isQR) {
+            queue.push(sign);
+          } else {
+            queue.unshift(sign);
+          }
         }
+        for (const sign of queue) {
+          const { signId, courseId, isGPS, isQR, name } = sign;
+          console.log("current sign-in:", sign.name);
 
-        sendNotificaition("Info: a sign-in is going on!");
-
-        if (isQR) {
-          if (signId === lastSignId) {
-            return;
+          if (signedIdSet.has(signId)) {
+            throw `${name} already signed in`;
           }
-          lastSignId = signId;
-          sendNotificaition("WARNING: QR sign-in is going on!");
-          qrSign?.destory();
-          qrSign = new QRSign({ courseId, signId });
-          qrSign.start((result) => {
-            const prompt =
-              "Signed in successfully. However, you need to re-run this script with NEW openid!";
 
-            console.log(result);
-            signedIdSet.add(signId);
+          sendNotificaition(`INFO: ${name} sign-in is going on!`);
 
-            sendNotificaition(prompt);
-            console.warn(prompt);
-            process.exit(0);
-          });
-        } else {
-          console.log("current sign-in:", data);
-          let signInQuery: ISignInQuery = { courseId, signId };
-          if (isGPS) {
-            signInQuery = { ...signInQuery, lat: 30, lon: 30 };
-          }
-          signIn(openId, signInQuery)
-            .then((data) => data.json())
-            .then((data) => {
-              if (!data.errorCode || data.errorCode === 305) {
-                signedIdSet.add(signId);
-              }
-              console.log(data);
-            })
-            .catch((e) => {
-              console.log(e);
-              sendNotificaition("Error: failed to sign in. See output plz.");
+          if (isQR) {
+            if (signId === lastSignId) {
+              return;
+            }
+            lastSignId = signId;
+            sendNotificaition(`WARNING: ${name} QR sign-in is going on!`);
+            qrSign?.destory();
+            qrSign = new QRSign({ courseId, signId });
+            qrSign.start((result) => {
+              const prompt =
+                "Signed in successfully. However, you need to re-run this script with NEW openid!";
+
+              console.log(result);
+              signedIdSet.add(signId);
+
+              sendNotificaition(prompt);
+              console.warn(prompt);
+              process.exit(0);
             });
+          } else {
+            let signInQuery: ISignInQuery = { courseId, signId };
+            if (isGPS) {
+              signInQuery = { ...signInQuery, lat: 30, lon: 30 };
+            }
+            signIn(openId, signInQuery)
+              .then((data) => data.json())
+              .then((data) => {
+                if (!data.errorCode || data.errorCode === 305) {
+                  signedIdSet.add(signId);
+                }
+                console.log(data);
+              })
+              .catch((e) => {
+                console.log(e);
+                sendNotificaition(
+                  `Error: failed to ${name} sign in. See output plz.`
+                );
+              });
+          }
         }
       })
       .catch((e) => {
