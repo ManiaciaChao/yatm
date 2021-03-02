@@ -1,8 +1,17 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 
+interface IConfig {
+  interval: number, // ms
+  wait: number, // ms
+  lat: number,
+  lon: number,
+  name?: string,
+  ua?: string,
+}
+
 const configFile = readFileSync(join("./", "config.json"));
-export const config = JSON.parse(configFile.toString());
+export const config: IConfig = JSON.parse(configFile.toString());
 
 export const userAgent =
   config.ua ??

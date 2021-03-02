@@ -27,14 +27,11 @@ if (openId) {
           qrSign?.destory();
           throw "No sign-in available";
         }
-        const queue = [];
-        for (const sign of data) {
-          if (sign.isQR) {
-            queue.push(sign);
-          } else {
-            queue.unshift(sign);
-          }
-        }
+        const queue = [
+          ...data.filter((sign) => !sign.isQR),
+          ...data.filter((sign) => sign.isQR),
+        ];
+
         for (const sign of queue) {
           const { signId, courseId, isGPS, isQR, name } = sign;
           console.log("current sign-in:", sign.name);
@@ -67,7 +64,8 @@ if (openId) {
           } else {
             let signInQuery: ISignInQuery = { courseId, signId };
             if (isGPS) {
-              signInQuery = { ...signInQuery, lat: 30, lon: 30 };
+              const { lat, lon } = config;
+              signInQuery = { ...signInQuery, lat, lon };
             }
             signIn(openId, signInQuery)
               .then((data) => data.json())
