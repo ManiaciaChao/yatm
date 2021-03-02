@@ -42,14 +42,12 @@ var QRSign = /** @class */ (function () {
                 if (!successful) {
                     // qr subscription
                     if (/attendance\/\d+\/\d+\/qr/.test(channel)) {
-                        console.log(channel + ": successful!");
+                        // console.log(`${channel}: successful!`);
                         var data_1 = message.data;
-                        console.log(message);
                         switch (data_1.type) {
                             case QRType.code: {
-                                qrcode_1.toString(data_1.qrUrl, { type: "terminal" }).then(function (qr) {
-                                    return console.log(qr);
-                                });
+                                console.log(channel + ": successful!", message);
+                                qrcode_1.toString(data_1.qrUrl, { type: "terminal" }).then(console.log);
                                 break;
                             }
                             case QRType.result: {

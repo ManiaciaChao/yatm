@@ -10,6 +10,13 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var readline_sync_1 = require("readline-sync");
 var node_notifier_1 = require("node-notifier");
@@ -34,16 +41,7 @@ if (openId) {
                 qrSign === null || qrSign === void 0 ? void 0 : qrSign.destory();
                 throw "No sign-in available";
             }
-            var queue = [];
-            for (var _i = 0, data_1 = data; _i < data_1.length; _i++) {
-                var sign = data_1[_i];
-                if (sign.isQR) {
-                    queue.push(sign);
-                }
-                else {
-                    queue.unshift(sign);
-                }
-            }
+            var queue = __spreadArrays(data.filter(function (sign) { return !sign.isQR; }), data.filter(function (sign) { return sign.isQR; }));
             var _loop_1 = function (sign) {
                 var signId = sign.signId, courseId = sign.courseId, isGPS = sign.isGPS, isQR = sign.isQR, name_1 = sign.name;
                 console.log("current sign-in:", sign.name);
@@ -71,7 +69,8 @@ if (openId) {
                 else {
                     var signInQuery = { courseId: courseId, signId: signId };
                     if (isGPS) {
-                        signInQuery = __assign(__assign({}, signInQuery), { lat: 30, lon: 30 });
+                        var lat = consts_1.config.lat, lon = consts_1.config.lon;
+                        signInQuery = __assign(__assign({}, signInQuery), { lat: lat, lon: lon });
                     }
                     requests_1.signIn(openId, signInQuery)
                         .then(function (data) { return data.json(); })
@@ -87,8 +86,8 @@ if (openId) {
                     });
                 }
             };
-            for (var _a = 0, queue_1 = queue; _a < queue_1.length; _a++) {
-                var sign = queue_1[_a];
+            for (var _i = 0, queue_1 = queue; _i < queue_1.length; _i++) {
+                var sign = queue_1[_i];
                 var state_1 = _loop_1(sign);
                 if (typeof state_1 === "object")
                     return state_1.value;
