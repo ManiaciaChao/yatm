@@ -108,14 +108,12 @@ export class QRSign {
       if (!successful) {
         // qr subscription
         if (/attendance\/\d+\/\d+\/qr/.test(channel)) {
-          console.log(`${channel}: successful!`);
+          // console.log(`${channel}: successful!`);
           const { data } = message as IQRMessage;
-          console.log(message);
           switch (data.type) {
             case QRType.code: {
-              toQR(data.qrUrl!, { type: "terminal" }).then((qr) =>
-                console.log(qr)
-              );
+              console.log(`${channel}: successful!`, message);
+              toQR(data.qrUrl!, { type: "terminal" }).then(console.log);
               break;
             }
             case QRType.result: {
@@ -174,6 +172,7 @@ export class QRSign {
       ],
       id: this.seqId,
     });
+
   private connect = () =>
     this.sendMessage({
       channel: "/meta/connect",
@@ -184,10 +183,12 @@ export class QRSign {
         timeout: 0,
       },
     });
+
   private startHeartbeat = (timeout: number) => {
     this.sendMessage();
     this.interval = setInterval(this.sendMessage, timeout);
   };
+
   private subscribe = () =>
     this.sendMessage({
       channel: "/meta/subscribe",
