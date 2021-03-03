@@ -1,7 +1,8 @@
 import WebSocket from "ws";
 import { toString as toQR } from "qrcode";
 import { IBasicSignInfo } from "./requests";
-import { config } from "./consts";
+import { qr } from "./consts";
+import { copyToPasteBoard } from "./utils";
 
 interface IServerMessage {
   id: string;
@@ -108,19 +109,27 @@ export class QRSign {
       if (!successful) {
         // qr subscription
         if (/attendance\/\d+\/\d+\/qr/.test(channel)) {
-          // console.log(`${channel}: successful!`);
+          console.log(`${channel}: successful!`);
           const { data } = message as IQRMessage;
           switch (data.type) {
             case QRType.code: {
-              // toQR(data.qrUrl!, { type: "terminal" }).then(console.log);
-              console.log(
-                `====paste the following line====\n${data.qrUrl}\n====then open it from WeChat====`
-              );
+              switch (qr.mode) {
+                case "terminal": {
+                  toQR(data.qrUrl!, { type: "terminal" }).then(console.log);
+                  break;
+                }
+                case "plain": {
+                  copyToPasteBoard(data.qrUrl);
+                  break;
+                }
+                default:
+                  break;
+              }
               break;
             }
             case QRType.result: {
               const { student } = data;
-              if (student && student.name === config.name) {
+              if (student && student.name === qr.name) {
                 this.onSuccess?.(student);
               }
               break;

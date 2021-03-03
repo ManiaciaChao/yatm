@@ -5,7 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QRSign = void 0;
 var ws_1 = __importDefault(require("ws"));
+var qrcode_1 = require("qrcode");
 var consts_1 = require("./consts");
+var utils_1 = require("./utils");
 var QRType;
 (function (QRType) {
     QRType[QRType["default"] = 0] = "default";
@@ -41,17 +43,27 @@ var QRSign = /** @class */ (function () {
                 if (!successful) {
                     // qr subscription
                     if (/attendance\/\d+\/\d+\/qr/.test(channel)) {
-                        // console.log(`${channel}: successful!`);
+                        console.log(channel + ": successful!");
                         var data_1 = message.data;
                         switch (data_1.type) {
                             case QRType.code: {
-                                // toQR(data.qrUrl!, { type: "terminal" }).then(console.log);
-                                console.log("====paste the following line====\n" + data_1.qrUrl + "\n====then open it from WeChat====");
+                                switch (consts_1.qr.mode) {
+                                    case "terminal": {
+                                        qrcode_1.toString(data_1.qrUrl, { type: "terminal" }).then(console.log);
+                                        break;
+                                    }
+                                    case "plain": {
+                                        utils_1.copyToPasteBoard(data_1.qrUrl);
+                                        break;
+                                    }
+                                    default:
+                                        break;
+                                }
                                 break;
                             }
                             case QRType.result: {
                                 var student = data_1.student;
-                                if (student && student.name === consts_1.config.name) {
+                                if (student && student.name === consts_1.qr.name) {
                                     (_a = _this.onSuccess) === null || _a === void 0 ? void 0 : _a.call(_this, student);
                                 }
                                 break;

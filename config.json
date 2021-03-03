@@ -3,6 +3,11 @@
   "wait": 5000,
   "lat": 30.511227,
   "lon": 114.41021,
-  "name": "张三",
+  "showQR": false,
+  "qr": {
+    "name": "张三",
+    "mode": "plain",
+    "copyCmd": "termux-clipboard-set {}"
+  },
   "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4427.5 Safari/537.36"
 }

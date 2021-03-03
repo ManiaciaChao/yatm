@@ -2,16 +2,28 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 interface IConfig {
-  interval: number, // ms
-  wait: number, // ms
-  lat: number,
-  lon: number,
-  name?: string,
-  ua?: string,
+  interval: number; // ms
+  wait: number; // ms
+  lat: number;
+  lon: number;
+  ua?: string;
+  qr: {
+    name?: string;
+    mode: "terminal" | "plain" | "image";
+    copyCmd?: string;
+  };
 }
 
 const configFile = readFileSync(join("./", "config.json"));
 export const config: IConfig = JSON.parse(configFile.toString());
+
+export const {
+  qr = {
+    name: "",
+    mode: "terminal",
+    copyCmd: undefined,
+  },
+} = config;
 
 export const userAgent =
   config.ua ??
