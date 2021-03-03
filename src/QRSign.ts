@@ -112,8 +112,10 @@ export class QRSign {
           const { data } = message as IQRMessage;
           switch (data.type) {
             case QRType.code: {
-              console.log(`${channel}: successful!`, message);
-              toQR(data.qrUrl!, { type: "terminal" }).then(console.log);
+              // toQR(data.qrUrl!, { type: "terminal" }).then(console.log);
+              console.log(
+                `====paste the following line====\n${data.qrUrl}\n====then open it from WeChat====`
+              );
               break;
             }
             case QRType.result: {

@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QRSign = void 0;
 var ws_1 = __importDefault(require("ws"));
-var qrcode_1 = require("qrcode");
 var consts_1 = require("./consts");
 var QRType;
 (function (QRType) {
@@ -46,8 +45,8 @@ var QRSign = /** @class */ (function () {
                         var data_1 = message.data;
                         switch (data_1.type) {
                             case QRType.code: {
-                                console.log(channel + ": successful!", message);
-                                qrcode_1.toString(data_1.qrUrl, { type: "terminal" }).then(console.log);
+                                // toQR(data.qrUrl!, { type: "terminal" }).then(console.log);
+                                console.log("====paste the following line====\n" + data_1.qrUrl + "\n====then open it from WeChat====");
                                 break;
                             }
                             case QRType.result: {
