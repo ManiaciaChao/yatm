@@ -4,9 +4,12 @@ import { IBasicSignInfo } from "./requests";
 import { qr } from "./consts";
 import { copyToPasteBoard } from "./utils";
 
-interface IServerMessage {
+interface IChannelMessage {
   id: string;
   channel: string;
+  successful?: boolean;
+}
+interface IServerMessage extends IChannelMessage {
   version: string;
   successful: boolean;
   advice: {
@@ -62,6 +65,10 @@ export class QRSign {
   private client: WebSocket | null = null;
   private interval: number = 0;
   private onSuccess: successCallback | null = null;
+  private currentQRUrl = "";
+
+  static testQRSubscription = (msg: IChannelMessage): msg is IQRMessage =>
+    /attendance\/\d+\/\d+\/qr/.test(msg.channel);
 
   constructor(info: IBasicSignInfo) {
     this.courseId = info.courseId;
@@ -96,6 +103,40 @@ export class QRSign {
     this.client?.send(raw);
   };
 
+  private handleQRSubscription = (message: IQRMessage) => {
+    const { data } = message;
+    switch (data.type) {
+      case QRType.code: {
+        if (data.qrUrl === this.currentQRUrl) {
+          return;
+        }
+        this.currentQRUrl == data.qrUrl;
+        switch (qr.mode) {
+          case "terminal": {
+            toQR(this.currentQRUrl, { type: "terminal" }).then(console.log);
+            break;
+          }
+          case "plain": {
+            copyToPasteBoard(this.currentQRUrl);
+            break;
+          }
+          default:
+            break;
+        }
+        break;
+      }
+      case QRType.result: {
+        const { student } = data;
+        if (student && student.name === qr.name) {
+          this.onSuccess?.(student);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  };
+
   private handleMessage = (data: string) => {
     try {
       const messages = JSON.parse(data);
@@ -104,39 +145,13 @@ export class QRSign {
       if (Array.isArray(messages) && messages.length === 0) {
         return;
       }
-      const message = messages[0];
-      const { channel, successful } = message as IServerMessage;
+      const message = messages[0] as IChannelMessage;
+      const { channel, successful } = message;
       if (!successful) {
         // qr subscription
-        if (/attendance\/\d+\/\d+\/qr/.test(channel)) {
+        if (QRSign.testQRSubscription(message)) {
           console.log(`${channel}: successful!`);
-          const { data } = message as IQRMessage;
-          switch (data.type) {
-            case QRType.code: {
-              switch (qr.mode) {
-                case "terminal": {
-                  toQR(data.qrUrl!, { type: "terminal" }).then(console.log);
-                  break;
-                }
-                case "plain": {
-                  copyToPasteBoard(data.qrUrl);
-                  break;
-                }
-                default:
-                  break;
-              }
-              break;
-            }
-            case QRType.result: {
-              const { student } = data;
-              if (student && student.name === qr.name) {
-                this.onSuccess?.(student);
-              }
-              break;
-            }
-            default:
-              break;
-          }
+          this.handleQRSubscription(message);
         } else {
           throw `${channel}: failed!`;
         }
