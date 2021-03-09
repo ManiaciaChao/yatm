@@ -4,14 +4,13 @@ import { env } from "process";
 import { activeSign, ActiveSignResp, ISignInQuery, signIn } from "./requests";
 import { config } from "./consts";
 import { QRSign } from "./QRSign";
-
 const extractOpenId = (str: string) =>
-  str.length === 32 ? str : str.match("openid=(.*)(?=&)")?.[1];
+  str.length === 32 ? str : str.match("openid=(.*?)(?=&|$)")?.[1];
 const sendNotificaition = (message: string) =>
   notify({ message, title: "yatm" });
 
 const openId = extractOpenId(
-  env.OPEN_ID ? env.OPEN_ID : question("Paste openId or URL here: ")
+  env.OPEN_ID ?? question("Paste openId or URL here: ")
 );
 const signedIdSet = new Set<number>();
 
@@ -88,4 +87,6 @@ if (openId) {
         console.log(e);
       });
   }, config.interval);
+} else {
+  throw 'Error: invalid openId or URL';
 }
