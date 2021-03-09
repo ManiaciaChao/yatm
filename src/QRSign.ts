@@ -53,6 +53,7 @@ interface IQRMessage {
 }
 
 type successCallback = (result: IQRStudentResult) => void;
+type errorCallback = (err: any) => void;
 
 export class QRSign {
   // static
@@ -64,7 +65,9 @@ export class QRSign {
   private clientId = "";
   private client: WebSocket | null = null;
   private interval: number = 0;
+  private onError: errorCallback | null = null;
   private onSuccess: successCallback | null = null;
+
   private currentQRUrl = "";
 
   static testQRSubscription = (msg: IChannelMessage): msg is IQRMessage =>
@@ -75,8 +78,10 @@ export class QRSign {
     this.signId = info.signId;
   }
 
-  start(cb: successCallback) {
-    this.onSuccess = cb;
+  startSync(cb?: successCallback, err?: (err: any) => void) {
+    this.onError = err ?? null;
+    this.onSuccess = cb ?? null;
+
     this.client = new WebSocket(QRSign.endpoint);
     this.client.on("open", () => {
       this.handshake();
@@ -85,7 +90,13 @@ export class QRSign {
       // console.log(data);
       this.handleMessage(data.toString());
     });
+    this.onError && this.client.on("error", this.onError);
   }
+
+  start = () =>
+    new Promise<IQRStudentResult>((resolve, reject) => {
+      this.startSync(resolve, reject);
+    });
 
   destory() {
     clearInterval(this.interval);
@@ -107,10 +118,11 @@ export class QRSign {
     const { data } = message;
     switch (data.type) {
       case QRType.code: {
-        if (data.qrUrl === this.currentQRUrl) {
+        const { qrUrl } = data;
+        if (!qrUrl || qrUrl === this.currentQRUrl) {
           return;
         }
-        this.currentQRUrl == data.qrUrl;
+        this.currentQRUrl = qrUrl;
         switch (qr.mode) {
           case "terminal": {
             toQR(this.currentQRUrl, { type: "terminal" }).then(console.log);

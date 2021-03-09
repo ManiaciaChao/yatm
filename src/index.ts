@@ -4,6 +4,8 @@ import { env } from "process";
 import { activeSign, ActiveSignResp, ISignInQuery, signIn } from "./requests";
 import { config } from "./consts";
 import { QRSign } from "./QRSign";
+import { sleep } from "./utils";
+
 const extractOpenId = (str: string) =>
   str.length === 32 ? str : str.match("openid=(.*?)(?=&|$)")?.[1];
 const sendNotificaition = (message: string) =>
@@ -14,79 +16,86 @@ const openId = extractOpenId(
 );
 const signedIdSet = new Set<number>();
 
+if (!openId) {
+  throw "Error: invalid openId or URL";
+}
+
 let lastSignId = 0;
 let qrSign: QRSign;
 
-if (openId) {
-  setInterval(() => {
-    activeSign(openId)
-      .then((data) => data.json())
-      .then((data: ActiveSignResp) => {
-        if (!data.length) {
+const main = async () => {
+  return await activeSign(openId)
+    .then((data) => data.json())
+    .then(async (data: ActiveSignResp) => {
+      if (!data.length) {
+        qrSign?.destory();
+        throw "No sign-in available";
+      }
+      const queue = [
+        ...data.filter((sign) => !sign.isQR),
+        ...data.filter((sign) => sign.isQR),
+      ];
+
+      for (const sign of queue) {
+        const { signId, courseId, isGPS, isQR, name } = sign;
+        console.log("current sign-in:", sign.name);
+
+        if (signedIdSet.has(signId)) {
+          throw `${name} already signed in`;
+        }
+
+        sendNotificaition(`INFO: ${name} sign-in is going on!`);
+
+        if (isQR) {
+          if (signId === lastSignId) {
+            return;
+          }
+          lastSignId = signId;
+          sendNotificaition(`WARNING: ${name} QR sign-in is going on!`);
           qrSign?.destory();
-          throw "No sign-in available";
-        }
-        const queue = [
-          ...data.filter((sign) => !sign.isQR),
-          ...data.filter((sign) => sign.isQR),
-        ];
+          qrSign = new QRSign({ courseId, signId });
+          const result = await qrSign.start();
+          const prompt =
+            "Signed in successfully. However, you need to re-run this script with NEW openid!";
 
-        for (const sign of queue) {
-          const { signId, courseId, isGPS, isQR, name } = sign;
-          console.log("current sign-in:", sign.name);
+          console.log(result);
+          signedIdSet.add(signId);
 
-          if (signedIdSet.has(signId)) {
-            throw `${name} already signed in`;
+          sendNotificaition(prompt);
+          console.warn(prompt);
+          process.exit(0);
+        } else {
+          let signInQuery: ISignInQuery = { courseId, signId };
+          if (isGPS) {
+            const { lat, lon } = config;
+            signInQuery = { ...signInQuery, lat, lon };
           }
-
-          sendNotificaition(`INFO: ${name} sign-in is going on!`);
-
-          if (isQR) {
-            if (signId === lastSignId) {
-              return;
-            }
-            lastSignId = signId;
-            sendNotificaition(`WARNING: ${name} QR sign-in is going on!`);
-            qrSign?.destory();
-            qrSign = new QRSign({ courseId, signId });
-            qrSign.start((result) => {
-              const prompt =
-                "Signed in successfully. However, you need to re-run this script with NEW openid!";
-
-              console.log(result);
-              signedIdSet.add(signId);
-
-              sendNotificaition(prompt);
-              console.warn(prompt);
-              process.exit(0);
+          await sleep(config.wait);
+          await signIn(openId, signInQuery)
+            .then((data) => data.json())
+            .then((data) => {
+              if (!data.errorCode || data.errorCode === 305) {
+                signedIdSet.add(signId);
+              }
+              console.log(data);
+            })
+            .catch((e) => {
+              console.log(e);
+              sendNotificaition(
+                `Error: failed to ${name} sign in. See output plz.`
+              );
             });
-          } else {
-            let signInQuery: ISignInQuery = { courseId, signId };
-            if (isGPS) {
-              const { lat, lon } = config;
-              signInQuery = { ...signInQuery, lat, lon };
-            }
-            signIn(openId, signInQuery)
-              .then((data) => data.json())
-              .then((data) => {
-                if (!data.errorCode || data.errorCode === 305) {
-                  signedIdSet.add(signId);
-                }
-                console.log(data);
-              })
-              .catch((e) => {
-                console.log(e);
-                sendNotificaition(
-                  `Error: failed to ${name} sign in. See output plz.`
-                );
-              });
-          }
         }
-      })
-      .catch((e) => {
-        console.log(e);
-      });
-  }, config.interval);
-} else {
-  throw 'Error: invalid openId or URL';
-}
+      }
+    })
+    .catch((e) => {
+      console.log(e);
+    });
+};
+
+(async () => {
+  for (;;) {
+    await main();
+    await sleep(config.interval);
+  }
+})();

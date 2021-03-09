@@ -5,12 +5,20 @@ const placeholder = "{}";
 export const copyToPasteBoard = (text?: string) => {
   if (!text) return;
   if (qr.copyCmd?.includes(placeholder)) {
-    exec(qr.copyCmd.replace(placeholder, `"${text}"`), (err, stdout, stderr) => {
-      if (err || stderr) {
-        throw err || stderr;
+    exec(
+      qr.copyCmd.replace(placeholder, `"${text}"`),
+      (err, stdout, stderr) => {
+        if (err || stderr) {
+          throw err || stderr;
+        }
       }
-    });
+    );
   } else {
     throw "wrong format for copyCmd!";
   }
 };
+
+export const sleep = (ms: number) =>
+  new Promise((reslove) => {
+    setTimeout(reslove, ms);
+  });
