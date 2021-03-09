@@ -35,14 +35,23 @@ yarn build
 
 ```javascript
 {
-  "interval": 3000, // 轮询间隔，单位 ms
+  "interval": 3000, // 签到检测轮询间隔，单位 ms
+  "wait": 5000,     // 检测到签到后等待时长，单位 ms
   // 用于 GPS 签到（大概是 Google 坐标）
   "lat": 30.511227, // 纬度
   "lon": 114.41021, // 经度
-  // 用于二维码签到
-  "name": "张三" // 微助教用户名，判断签到是否成功
-  "ua": "" // 建议使用自己的 UA
+  "qr": { // 用于二维码签到
+    "name": "张三", // 微助教用户名，判断签到是否成功
+    // 模式
+    //   terminal: 终端打印二维码，微信扫码
+    //   plain： 终端打印签到URL，微信打开
+    //   copy：同 plain，并复制到剪贴板
+    "mode": "terminal",
+    "copyCmd": "termux-clipboard-set {}" // 仅在 copy 模式下启用，{} 为占位符
+  }
+  "ua": "" // 建议使用自己的微信 UA
 }
+
 ```
 
 ## Usage

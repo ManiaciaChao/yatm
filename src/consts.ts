@@ -9,7 +9,7 @@ interface IConfig {
   ua?: string;
   qr: {
     name?: string;
-    mode: "terminal" | "plain" | "image";
+    mode: "terminal" | "plain" | "copy";
     copyCmd?: string;
   };
 }

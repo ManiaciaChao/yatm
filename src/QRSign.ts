@@ -128,8 +128,11 @@ export class QRSign {
             toQR(this.currentQRUrl, { type: "terminal" }).then(console.log);
             break;
           }
-          case "plain": {
+          case "copy": {
             copyToPasteBoard(this.currentQRUrl);
+          }
+          case "plain": {
+            console.log(this.currentQRUrl);
             break;
           }
           default:
