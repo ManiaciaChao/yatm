@@ -1,7 +1,7 @@
 {
   "description": "yet another teachermate helper",
   "license": "MIT",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "scripts": {
     "start": "node ./dist/index.js",
     "build": "tsc"

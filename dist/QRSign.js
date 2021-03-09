@@ -23,15 +23,59 @@ var QRSign = /** @class */ (function () {
         this.clientId = "";
         this.client = null;
         this.interval = 0;
+        this.onError = null;
         this.onSuccess = null;
+        this.currentQRUrl = "";
+        this.start = function () {
+            return new Promise(function (resolve, reject) {
+                _this.startSync(resolve, reject);
+            });
+        };
         //
         this.sendMessage = function (msg) {
             var _a;
             var raw = JSON.stringify(msg ? [msg] : []);
             (_a = _this.client) === null || _a === void 0 ? void 0 : _a.send(raw);
         };
-        this.handleMessage = function (data) {
+        this.handleQRSubscription = function (message) {
             var _a;
+            var data = message.data;
+            switch (data.type) {
+                case QRType.code: {
+                    var qrUrl = data.qrUrl;
+                    if (!qrUrl || qrUrl === _this.currentQRUrl) {
+                        return;
+                    }
+                    _this.currentQRUrl = qrUrl;
+                    switch (consts_1.qr.mode) {
+                        case "terminal": {
+                            qrcode_1.toString(_this.currentQRUrl, { type: "terminal" }).then(console.log);
+                            break;
+                        }
+                        case "copy": {
+                            utils_1.copyToPasteBoard(_this.currentQRUrl);
+                        }
+                        case "plain": {
+                            console.log(_this.currentQRUrl);
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                    break;
+                }
+                case QRType.result: {
+                    var student = data.student;
+                    if (student && student.name === consts_1.qr.name) {
+                        (_a = _this.onSuccess) === null || _a === void 0 ? void 0 : _a.call(_this, student);
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        };
+        this.handleMessage = function (data) {
             try {
                 var messages = JSON.parse(data);
                 // heartbeat response
@@ -39,38 +83,12 @@ var QRSign = /** @class */ (function () {
                     return;
                 }
                 var message = messages[0];
-                var _b = message, channel = _b.channel, successful = _b.successful;
+                var channel = message.channel, successful = message.successful;
                 if (!successful) {
                     // qr subscription
-                    if (/attendance\/\d+\/\d+\/qr/.test(channel)) {
+                    if (QRSign.testQRSubscription(message)) {
                         console.log(channel + ": successful!");
-                        var data_1 = message.data;
-                        switch (data_1.type) {
-                            case QRType.code: {
-                                switch (consts_1.qr.mode) {
-                                    case "terminal": {
-                                        qrcode_1.toString(data_1.qrUrl, { type: "terminal" }).then(console.log);
-                                        break;
-                                    }
-                                    case "plain": {
-                                        utils_1.copyToPasteBoard(data_1.qrUrl);
-                                        break;
-                                    }
-                                    default:
-                                        break;
-                                }
-                                break;
-                            }
-                            case QRType.result: {
-                                var student = data_1.student;
-                                if (student && student.name === consts_1.qr.name) {
-                                    (_a = _this.onSuccess) === null || _a === void 0 ? void 0 : _a.call(_this, student);
-                                }
-                                break;
-                            }
-                            default:
-                                break;
-                        }
+                        _this.handleQRSubscription(message);
                     }
                     else {
                         throw channel + ": failed!";
@@ -144,9 +162,10 @@ var QRSign = /** @class */ (function () {
         this.courseId = info.courseId;
         this.signId = info.signId;
     }
-    QRSign.prototype.start = function (cb) {
+    QRSign.prototype.startSync = function (cb, err) {
         var _this = this;
-        this.onSuccess = cb;
+        this.onError = err !== null && err !== void 0 ? err : null;
+        this.onSuccess = cb !== null && cb !== void 0 ? cb : null;
         this.client = new ws_1.default(QRSign.endpoint);
         this.client.on("open", function () {
             _this.handshake();
@@ -155,6 +174,7 @@ var QRSign = /** @class */ (function () {
             // console.log(data);
             _this.handleMessage(data.toString());
         });
+        this.onError && this.client.on("error", this.onError);
     };
     QRSign.prototype.destory = function () {
         var _a;
@@ -171,6 +191,9 @@ var QRSign = /** @class */ (function () {
     });
     // static
     QRSign.endpoint = "wss://www.teachermate.com.cn/faye";
+    QRSign.testQRSubscription = function (msg) {
+        return /attendance\/\d+\/\d+\/qr/.test(msg.channel);
+    };
     return QRSign;
 }());
 exports.QRSign = QRSign;

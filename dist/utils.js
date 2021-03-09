@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.copyToPasteBoard = void 0;
+exports.sleep = exports.copyToPasteBoard = void 0;
 var child_process_1 = require("child_process");
 var consts_1 = require("./consts");
 var placeholder = "{}";
@@ -18,4 +18,9 @@ exports.copyToPasteBoard = function (text) {
     else {
         throw "wrong format for copyCmd!";
     }
+};
+exports.sleep = function (ms) {
+    return new Promise(function (reslove) {
+        setTimeout(reslove, ms);
+    });
 };
