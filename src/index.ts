@@ -1,12 +1,7 @@
 import { question } from "readline-sync";
 import { notify } from "node-notifier";
 import { env } from "process";
-import {
-  activeSign,
-  checkInvaild,
-  ISignInQuery,
-  signIn,
-} from "./requests";
+import { activeSign, checkInvaild, ISignInQuery, signIn } from "./requests";
 import { CHECK_ALIVE_INTERVAL, config } from "./consts";
 import { QRSign } from "./QRSign";
 import { sleep } from "./utils";
@@ -99,8 +94,9 @@ const main = async () => {
 (async () => {
   for (let i = 0; ; i = (i + 1) % CHECK_ALIVE_INTERVAL) {
     if (i === 0 && (await checkInvaild(openId))) {
-      sendNotificaition(`Error: expired or invaild openId`);
-      break;
+      const prompt = `Error: expired or invaild openId`;
+      sendNotificaition(prompt);
+      throw prompt;
     }
     await main();
     await sleep(config.interval);
