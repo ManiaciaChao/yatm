@@ -77,7 +77,6 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, requests_1.activeSign(openId)
-                    .then(function (data) { return data.json(); })
                     .then(function (data) { return __awaiter(void 0, void 0, void 0, function () {
                     var queue, _loop_1, _i, queue_1, sign, state_1;
                     return __generator(this, function (_a) {
@@ -127,7 +126,6 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
                                             case 3:
                                                 _a.sent();
                                                 return [4 /*yield*/, requests_1.signIn(openId, signInQuery)
-                                                        .then(function (data) { return data.json(); })
                                                         .then(function (data) {
                                                         if (!data.errorCode || data.errorCode === 305) {
                                                             signedIdSet.add(signId);
@@ -171,17 +169,35 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
     });
 }); };
 (function () { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, main()];
+    var i, _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                i = 0;
+                _b.label = 1;
             case 1:
-                _a.sent();
-                return [4 /*yield*/, utils_1.sleep(consts_1.config.interval)];
+                _a = i === 0;
+                if (!_a) return [3 /*break*/, 3];
+                return [4 /*yield*/, requests_1.checkInvaild(openId)];
             case 2:
-                _a.sent();
-                _a.label = 3;
-            case 3: return [3 /*break*/, 0];
-            case 4: return [2 /*return*/];
+                _a = (_b.sent());
+                _b.label = 3;
+            case 3:
+                if (_a) {
+                    sendNotificaition("Error: expired or invaild openId");
+                    return [3 /*break*/, 7];
+                }
+                return [4 /*yield*/, main()];
+            case 4:
+                _b.sent();
+                return [4 /*yield*/, utils_1.sleep(consts_1.config.interval)];
+            case 5:
+                _b.sent();
+                _b.label = 6;
+            case 6:
+                i = (i + 1) % consts_1.CHECK_ALIVE_INTERVAL;
+                return [3 /*break*/, 1];
+            case 7: return [2 /*return*/];
         }
     });
 }); })();
