@@ -1,8 +1,13 @@
 import { question } from "readline-sync";
 import { notify } from "node-notifier";
 import { env } from "process";
-import { activeSign, ActiveSignResp, ISignInQuery, signIn } from "./requests";
-import { config } from "./consts";
+import {
+  activeSign,
+  checkInvaild,
+  ISignInQuery,
+  signIn,
+} from "./requests";
+import { CHECK_ALIVE_INTERVAL, config } from "./consts";
 import { QRSign } from "./QRSign";
 import { sleep } from "./utils";
 
@@ -25,8 +30,7 @@ let qrSign: QRSign;
 
 const main = async () => {
   return await activeSign(openId)
-    .then((data) => data.json())
-    .then(async (data: ActiveSignResp) => {
+    .then(async (data) => {
       if (!data.length) {
         qrSign?.destory();
         throw "No sign-in available";
@@ -72,7 +76,6 @@ const main = async () => {
           }
           await sleep(config.wait);
           await signIn(openId, signInQuery)
-            .then((data) => data.json())
             .then((data) => {
               if (!data.errorCode || data.errorCode === 305) {
                 signedIdSet.add(signId);
@@ -94,7 +97,11 @@ const main = async () => {
 };
 
 (async () => {
-  for (;;) {
+  for (let i = 0; ; i = (i + 1) % CHECK_ALIVE_INTERVAL) {
+    if (i === 0 && (await checkInvaild(openId))) {
+      sendNotificaition(`Error: expired or invaild openId`);
+      break;
+    }
     await main();
     await sleep(config.interval);
   }
