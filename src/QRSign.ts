@@ -64,7 +64,7 @@ export class QRSign {
   private signId: number;
   private clientId = '';
   private client: WebSocket | null = null;
-  private interval: number = 0;
+  private interval: NodeJS.Timeout | undefined;
   private onError: errorCallback | null = null;
   private onSuccess: successCallback | null = null;
 
@@ -87,7 +87,7 @@ export class QRSign {
       this.handshake();
     });
     this.client.on('message', (data) => {
-      // console.log(data);
+      console.log(data);
       this.handleMessage(data.toString());
     });
     this.onError && this.client.on('error', this.onError);
@@ -99,7 +99,9 @@ export class QRSign {
     });
 
   destory() {
-    clearInterval(this.interval);
+    if (this.interval) {
+      clearInterval(this.interval);
+    }
     this.client?.close();
   }
 
@@ -110,6 +112,7 @@ export class QRSign {
   //
 
   private sendMessage = (msg?: object) => {
+    console.log(msg);
     const raw = JSON.stringify(msg ? [msg] : []);
     this.client?.send(raw);
   };
@@ -214,20 +217,21 @@ export class QRSign {
       id: this.seqId,
     });
 
-  private connect = () =>
+  private connect = () => {
     this.sendMessage({
       channel: '/meta/connect',
       clientId: this.clientId,
-      connectionType: 'long-polling',
+      connectionType: 'websocket',
       id: this.seqId,
-      advice: {
-        timeout: 0,
-      },
     });
+  };
 
   private startHeartbeat = (timeout: number) => {
     this.sendMessage();
-    this.interval = setInterval(this.sendMessage, timeout);
+    this.interval = setInterval(() => {
+      this.sendMessage();
+      this.connect();
+    }, timeout / 2);
   };
 
   private subscribe = () =>

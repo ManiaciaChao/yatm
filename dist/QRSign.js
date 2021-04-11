@@ -21,7 +21,6 @@ class QRSign {
         this._seqId = 0;
         this.clientId = '';
         this.client = null;
-        this.interval = 0;
         this.onError = null;
         this.onSuccess = null;
         this.currentQRUrl = '';
@@ -30,6 +29,7 @@ class QRSign {
         });
         //
         this.sendMessage = (msg) => {
+            console.log(msg);
             const raw = JSON.stringify(msg ? [msg] : []);
             this.client?.send(raw);
         };
@@ -129,18 +129,20 @@ class QRSign {
             ],
             id: this.seqId,
         });
-        this.connect = () => this.sendMessage({
-            channel: '/meta/connect',
-            clientId: this.clientId,
-            connectionType: 'long-polling',
-            id: this.seqId,
-            advice: {
-                timeout: 0,
-            },
-        });
+        this.connect = () => {
+            this.sendMessage({
+                channel: '/meta/connect',
+                clientId: this.clientId,
+                connectionType: 'websocket',
+                id: this.seqId,
+            });
+        };
         this.startHeartbeat = (timeout) => {
             this.sendMessage();
-            this.interval = setInterval(this.sendMessage, timeout);
+            this.interval = setInterval(() => {
+                this.sendMessage();
+                this.connect();
+            }, timeout / 2);
         };
         this.subscribe = () => this.sendMessage({
             channel: '/meta/subscribe',
@@ -159,13 +161,15 @@ class QRSign {
             this.handshake();
         });
         this.client.on('message', (data) => {
-            // console.log(data);
+            console.log(data);
             this.handleMessage(data.toString());
         });
         this.onError && this.client.on('error', this.onError);
     }
     destory() {
-        clearInterval(this.interval);
+        if (this.interval) {
+            clearInterval(this.interval);
+        }
         this.client?.close();
     }
     // getters

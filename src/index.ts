@@ -18,7 +18,10 @@ const getOpenId = async () => {
       const str = pasteFromClipBoard();
       openId = extractOpenId(str);
       if (openId) {
-        openId = extractOpenId(str);
+        if (openIdSet.has(openId)) {
+          continue;
+        }
+        openIdSet.add(openId);
         break;
       }
       await sleep(config.wait);
@@ -35,6 +38,7 @@ const getOpenId = async () => {
 };
 
 const signedIdSet = new Set<number>();
+const openIdSet = new Set<string>();
 
 let lastSignId = 0;
 let qrSign: QRSign;
@@ -111,9 +115,14 @@ const main = async () => {
 let openId = '';
 
 (async () => {
-  openId = await getOpenId();
   for (;;) {
     if (!openId.length || (await checkInvaild(openId))) {
+      const prompt = 'Wait for valid openId from clipboard';
+      sendNotificaition(prompt);
+      console.warn(prompt);
+      if (!openIdSet.has(openId)) {
+        openIdSet.add(openId);
+      }
       openId = await getOpenId();
       // const prompt = `Error: expired or invaild openId`;
       // sendNotificaition(prompt);
