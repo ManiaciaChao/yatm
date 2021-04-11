@@ -40,7 +40,8 @@ yarn build
   // 用于 GPS 签到（大概是 Google 坐标）
   "lat": 30.511227, // 纬度
   "lon": 114.41021, // 经度
-  "clipboard": {//剪贴板指令
+  //剪贴板指令
+  "clipboard": {
     "paste": "pbpaste",//paste不为空后openId将从剪贴板获得
     "copy": "echo {}|pbcopy"//仅在 copy 模式下启用，{} 将被替换为链接
   },
