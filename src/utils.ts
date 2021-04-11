@@ -1,21 +1,23 @@
-import { exec } from "child_process";
-import { qr } from "./consts";
+import { execSync } from 'child_process';
+import { config, qr } from './consts';
 
-const placeholder = "{}";
-export const copyToPasteBoard = (text?: string) => {
-  if (!text) return;
-  if (qr.copyCmd?.includes(placeholder)) {
-    exec(
-      qr.copyCmd.replace(placeholder, `"${text}"`),
-      (err, stdout, stderr) => {
-        if (err || stderr) {
-          throw err || stderr;
-        }
-      }
-    );
+const placeholder = '{}';
+export const copyToClipBoard = (text?: string) => {
+  if (!text || !config.clipboard?.copy) return;
+  const copyCmd = config.clipboard.copy;
+  if (copyCmd.includes(placeholder)) {
+    execSync(copyCmd.replace(placeholder, `"${text}"`));
   } else {
-    throw "wrong format for copyCmd!";
+    throw 'wrong format for copyCmd!';
   }
+};
+
+export const pasteFromClipBoard = (): string => {
+  if (!config.clipboard?.paste) {
+    return '';
+  }
+  const pasteCmd = config.clipboard.paste;
+  return execSync(pasteCmd).toString();
 };
 
 export const sleep = (ms: number) =>

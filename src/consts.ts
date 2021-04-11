@@ -1,5 +1,5 @@
-import { readFileSync } from "fs";
-import { join } from "path";
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 interface IConfig {
   interval: number; // ms
@@ -7,20 +7,23 @@ interface IConfig {
   lat: number;
   lon: number;
   ua?: string;
+  clipboard?: {
+    paste: string;
+    copy: string;
+  };
   qr: {
     name?: string;
-    mode: "terminal" | "plain" | "copy";
-    copyCmd?: string;
+    mode: 'terminal' | 'plain' | 'copy';
   };
 }
 
-const configFile = readFileSync(join("./", "config.json"));
+const configFile = readFileSync(join('./', 'config.json'));
 export const config: IConfig = JSON.parse(configFile.toString());
 
 export const {
   qr = {
-    name: "",
-    mode: "terminal",
+    name: '',
+    mode: 'terminal',
     copyCmd: undefined,
   },
 } = config;

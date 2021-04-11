@@ -4,10 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QRSign = void 0;
-var ws_1 = __importDefault(require("ws"));
-var qrcode_1 = require("qrcode");
-var consts_1 = require("./consts");
-var utils_1 = require("./utils");
+const ws_1 = __importDefault(require("ws"));
+const qrcode_1 = require("qrcode");
+const consts_1 = require("./consts");
+const utils_1 = require("./utils");
 var QRType;
 (function (QRType) {
     QRType[QRType["default"] = 0] = "default";
@@ -15,48 +15,43 @@ var QRType;
     QRType[QRType["unknown"] = 2] = "unknown";
     QRType[QRType["result"] = 3] = "result";
 })(QRType || (QRType = {}));
-var QRSign = /** @class */ (function () {
-    function QRSign(info) {
-        var _this = this;
+class QRSign {
+    constructor(info) {
         // fields
         this._seqId = 0;
-        this.clientId = "";
+        this.clientId = '';
         this.client = null;
         this.interval = 0;
         this.onError = null;
         this.onSuccess = null;
-        this.currentQRUrl = "";
-        this.start = function () {
-            return new Promise(function (resolve, reject) {
-                _this.startSync(resolve, reject);
-            });
-        };
+        this.currentQRUrl = '';
+        this.start = () => new Promise((resolve, reject) => {
+            this.startSync(resolve, reject);
+        });
         //
-        this.sendMessage = function (msg) {
-            var _a;
-            var raw = JSON.stringify(msg ? [msg] : []);
-            (_a = _this.client) === null || _a === void 0 ? void 0 : _a.send(raw);
+        this.sendMessage = (msg) => {
+            const raw = JSON.stringify(msg ? [msg] : []);
+            this.client?.send(raw);
         };
-        this.handleQRSubscription = function (message) {
-            var _a;
-            var data = message.data;
+        this.handleQRSubscription = (message) => {
+            const { data } = message;
             switch (data.type) {
                 case QRType.code: {
-                    var qrUrl = data.qrUrl;
-                    if (!qrUrl || qrUrl === _this.currentQRUrl) {
+                    const { qrUrl } = data;
+                    if (!qrUrl || qrUrl === this.currentQRUrl) {
                         return;
                     }
-                    _this.currentQRUrl = qrUrl;
+                    this.currentQRUrl = qrUrl;
                     switch (consts_1.qr.mode) {
-                        case "terminal": {
-                            qrcode_1.toString(_this.currentQRUrl, { type: "terminal" }).then(console.log);
+                        case 'terminal': {
+                            qrcode_1.toString(this.currentQRUrl, { type: 'terminal' }).then(console.log);
                             break;
                         }
-                        case "copy": {
-                            utils_1.copyToPasteBoard(_this.currentQRUrl);
+                        case 'copy': {
+                            utils_1.copyToClipBoard(this.currentQRUrl);
                         }
-                        case "plain": {
-                            console.log(_this.currentQRUrl);
+                        case 'plain': {
+                            console.log(this.currentQRUrl);
                             break;
                         }
                         default:
@@ -65,9 +60,9 @@ var QRSign = /** @class */ (function () {
                     break;
                 }
                 case QRType.result: {
-                    var student = data.student;
+                    const { student } = data;
                     if (student && student.name === consts_1.qr.name) {
-                        (_a = _this.onSuccess) === null || _a === void 0 ? void 0 : _a.call(_this, student);
+                        this.onSuccess?.(student);
                     }
                     break;
                 }
@@ -75,41 +70,41 @@ var QRSign = /** @class */ (function () {
                     break;
             }
         };
-        this.handleMessage = function (data) {
+        this.handleMessage = (data) => {
             try {
-                var messages = JSON.parse(data);
+                const messages = JSON.parse(data);
                 // heartbeat response
                 if (Array.isArray(messages) && messages.length === 0) {
                     return;
                 }
-                var message = messages[0];
-                var channel = message.channel, successful = message.successful;
+                const message = messages[0];
+                const { channel, successful } = message;
                 if (!successful) {
                     // qr subscription
                     if (QRSign.testQRSubscription(message)) {
-                        console.log(channel + ": successful!");
-                        _this.handleQRSubscription(message);
+                        console.log(`${channel}: successful!`);
+                        this.handleQRSubscription(message);
                     }
                     else {
-                        throw channel + ": failed!";
+                        throw `${channel}: failed!`;
                     }
                 }
                 else {
-                    console.log(channel + ": successful!");
+                    console.log(`${channel}: successful!`);
                     switch (message.channel) {
-                        case "/meta/handshake": {
-                            var clientId = message.clientId;
-                            _this.clientId = clientId;
-                            _this.connect();
+                        case '/meta/handshake': {
+                            const { clientId } = message;
+                            this.clientId = clientId;
+                            this.connect();
                             break;
                         }
-                        case "/meta/connect": {
-                            var timeout = message.advice.timeout;
-                            _this.startHeartbeat(timeout);
-                            _this.subscribe();
+                        case '/meta/connect': {
+                            const { advice: { timeout }, } = message;
+                            this.startHeartbeat(timeout);
+                            this.subscribe();
                             break;
                         }
-                        case "/meta/subscribe": {
+                        case '/meta/subscribe': {
                             break;
                         }
                         default: {
@@ -119,81 +114,66 @@ var QRSign = /** @class */ (function () {
                 }
             }
             catch (err) {
-                console.log("QR: " + err);
+                console.log(`QR: ${err}`);
             }
         };
-        this.handshake = function () {
-            return _this.sendMessage({
-                channel: "/meta/handshake",
-                version: "1.0",
-                supportedConnectionTypes: [
-                    "websocket",
-                    "eventsource",
-                    "long-polling",
-                    "cross-origin-long-polling",
-                    "callback-polling",
-                ],
-                id: _this.seqId,
-            });
+        this.handshake = () => this.sendMessage({
+            channel: '/meta/handshake',
+            version: '1.0',
+            supportedConnectionTypes: [
+                'websocket',
+                'eventsource',
+                'long-polling',
+                'cross-origin-long-polling',
+                'callback-polling',
+            ],
+            id: this.seqId,
+        });
+        this.connect = () => this.sendMessage({
+            channel: '/meta/connect',
+            clientId: this.clientId,
+            connectionType: 'long-polling',
+            id: this.seqId,
+            advice: {
+                timeout: 0,
+            },
+        });
+        this.startHeartbeat = (timeout) => {
+            this.sendMessage();
+            this.interval = setInterval(this.sendMessage, timeout);
         };
-        this.connect = function () {
-            return _this.sendMessage({
-                channel: "/meta/connect",
-                clientId: _this.clientId,
-                connectionType: "long-polling",
-                id: _this.seqId,
-                advice: {
-                    timeout: 0,
-                },
-            });
-        };
-        this.startHeartbeat = function (timeout) {
-            _this.sendMessage();
-            _this.interval = setInterval(_this.sendMessage, timeout);
-        };
-        this.subscribe = function () {
-            return _this.sendMessage({
-                channel: "/meta/subscribe",
-                clientId: _this.clientId,
-                subscription: "/attendance/" + _this.courseId + "/" + _this.signId + "/qr",
-                id: _this.seqId,
-            });
-        };
+        this.subscribe = () => this.sendMessage({
+            channel: '/meta/subscribe',
+            clientId: this.clientId,
+            subscription: `/attendance/${this.courseId}/${this.signId}/qr`,
+            id: this.seqId,
+        });
         this.courseId = info.courseId;
         this.signId = info.signId;
     }
-    QRSign.prototype.startSync = function (cb, err) {
-        var _this = this;
-        this.onError = err !== null && err !== void 0 ? err : null;
-        this.onSuccess = cb !== null && cb !== void 0 ? cb : null;
+    startSync(cb, err) {
+        this.onError = err ?? null;
+        this.onSuccess = cb ?? null;
         this.client = new ws_1.default(QRSign.endpoint);
-        this.client.on("open", function () {
-            _this.handshake();
+        this.client.on('open', () => {
+            this.handshake();
         });
-        this.client.on("message", function (data) {
+        this.client.on('message', (data) => {
             // console.log(data);
-            _this.handleMessage(data.toString());
+            this.handleMessage(data.toString());
         });
-        this.onError && this.client.on("error", this.onError);
-    };
-    QRSign.prototype.destory = function () {
-        var _a;
+        this.onError && this.client.on('error', this.onError);
+    }
+    destory() {
         clearInterval(this.interval);
-        (_a = this.client) === null || _a === void 0 ? void 0 : _a.close();
-    };
-    Object.defineProperty(QRSign.prototype, "seqId", {
-        // getters
-        get: function () {
-            return "" + this._seqId++;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    // static
-    QRSign.endpoint = "wss://www.teachermate.com.cn/faye";
-    QRSign.testQRSubscription = function (msg) {
-        return /attendance\/\d+\/\d+\/qr/.test(msg.channel);
-    };
-    return QRSign;
-}());
+        this.client?.close();
+    }
+    // getters
+    get seqId() {
+        return `${this._seqId++}`;
+    }
+}
 exports.QRSign = QRSign;
+// static
+QRSign.endpoint = 'wss://www.teachermate.com.cn/faye';
+QRSign.testQRSubscription = (msg) => /attendance\/\d+\/\d+\/qr/.test(msg.channel);

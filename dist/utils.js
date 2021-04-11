@@ -1,26 +1,27 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sleep = exports.copyToPasteBoard = void 0;
-var child_process_1 = require("child_process");
-var consts_1 = require("./consts");
-var placeholder = "{}";
-exports.copyToPasteBoard = function (text) {
-    var _a;
-    if (!text)
+exports.sleep = exports.pasteFromClipBoard = exports.copyToClipBoard = void 0;
+const child_process_1 = require("child_process");
+const consts_1 = require("./consts");
+const placeholder = '{}';
+exports.copyToClipBoard = (text) => {
+    if (!text || !consts_1.config.clipboard?.copy)
         return;
-    if ((_a = consts_1.qr.copyCmd) === null || _a === void 0 ? void 0 : _a.includes(placeholder)) {
-        child_process_1.exec(consts_1.qr.copyCmd.replace(placeholder, "\"" + text + "\""), function (err, stdout, stderr) {
-            if (err || stderr) {
-                throw err || stderr;
-            }
-        });
+    const copyCmd = consts_1.config.clipboard.copy;
+    if (copyCmd.includes(placeholder)) {
+        child_process_1.execSync(copyCmd.replace(placeholder, `"${text}"`));
     }
     else {
-        throw "wrong format for copyCmd!";
+        throw 'wrong format for copyCmd!';
     }
 };
-exports.sleep = function (ms) {
-    return new Promise(function (reslove) {
-        setTimeout(reslove, ms);
-    });
+exports.pasteFromClipBoard = () => {
+    if (!consts_1.config.clipboard?.paste) {
+        return '';
+    }
+    const pasteCmd = consts_1.config.clipboard.paste;
+    return child_process_1.execSync(pasteCmd).toString();
 };
+exports.sleep = (ms) => new Promise((reslove) => {
+    setTimeout(reslove, ms);
+});

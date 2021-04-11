@@ -1,0 +1,15 @@
+{
+  "interval": 3000,
+  "wait": 5000,
+  "lat": 30.511227,
+  "lon": 114.41021,
+  "clipboard": {
+    "paste": "pbpaste",
+    "copy": "echo {}|pbcopy"
+  },
+  "qr": {
+    "name": "阿杰",
+    "mode": "terminal"
+  },
+  "ua": ""
+}
