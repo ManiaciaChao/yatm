@@ -1,8 +1,8 @@
-import WebSocket from "ws";
-import { toString as toQR } from "qrcode";
-import { IBasicSignInfo } from "./requests";
-import { qr } from "./consts";
-import { copyToPasteBoard } from "./utils";
+import WebSocket from 'ws';
+import { toString as toQR } from 'qrcode';
+import { IBasicSignInfo } from './requests';
+import { qr } from './consts';
+import { copyToClipBoard } from './utils';
 
 interface IChannelMessage {
   id: string;
@@ -57,18 +57,18 @@ type errorCallback = (err: any) => void;
 
 export class QRSign {
   // static
-  static endpoint = "wss://www.teachermate.com.cn/faye";
+  static endpoint = 'wss://www.teachermate.com.cn/faye';
   // fields
   private _seqId = 0;
   private courseId: number;
   private signId: number;
-  private clientId = "";
+  private clientId = '';
   private client: WebSocket | null = null;
-  private interval: number = 0;
+  private interval: NodeJS.Timeout | undefined;
   private onError: errorCallback | null = null;
   private onSuccess: successCallback | null = null;
 
-  private currentQRUrl = "";
+  private currentQRUrl = '';
 
   static testQRSubscription = (msg: IChannelMessage): msg is IQRMessage =>
     /attendance\/\d+\/\d+\/qr/.test(msg.channel);
@@ -83,14 +83,14 @@ export class QRSign {
     this.onSuccess = cb ?? null;
 
     this.client = new WebSocket(QRSign.endpoint);
-    this.client.on("open", () => {
+    this.client.on('open', () => {
       this.handshake();
     });
-    this.client.on("message", (data) => {
-      // console.log(data);
+    this.client.on('message', (data) => {
+      console.log(data);
       this.handleMessage(data.toString());
     });
-    this.onError && this.client.on("error", this.onError);
+    this.onError && this.client.on('error', this.onError);
   }
 
   start = () =>
@@ -99,7 +99,9 @@ export class QRSign {
     });
 
   destory() {
-    clearInterval(this.interval);
+    if (this.interval) {
+      clearInterval(this.interval);
+    }
     this.client?.close();
   }
 
@@ -110,6 +112,7 @@ export class QRSign {
   //
 
   private sendMessage = (msg?: object) => {
+    console.log(msg);
     const raw = JSON.stringify(msg ? [msg] : []);
     this.client?.send(raw);
   };
@@ -124,14 +127,14 @@ export class QRSign {
         }
         this.currentQRUrl = qrUrl;
         switch (qr.mode) {
-          case "terminal": {
-            toQR(this.currentQRUrl, { type: "terminal" }).then(console.log);
+          case 'terminal': {
+            toQR(this.currentQRUrl, { type: 'terminal' }).then(console.log);
             break;
           }
-          case "copy": {
-            copyToPasteBoard(this.currentQRUrl);
+          case 'copy': {
+            copyToClipBoard(this.currentQRUrl);
           }
-          case "plain": {
+          case 'plain': {
             console.log(this.currentQRUrl);
             break;
           }
@@ -173,13 +176,13 @@ export class QRSign {
       } else {
         console.log(`${channel}: successful!`);
         switch (message.channel) {
-          case "/meta/handshake": {
+          case '/meta/handshake': {
             const { clientId } = message as IHandShakeMessage;
             this.clientId = clientId;
             this.connect();
             break;
           }
-          case "/meta/connect": {
+          case '/meta/connect': {
             const {
               advice: { timeout },
             } = message as IServerMessage;
@@ -187,7 +190,7 @@ export class QRSign {
             this.subscribe();
             break;
           }
-          case "/meta/subscribe": {
+          case '/meta/subscribe': {
             break;
           }
           default: {
@@ -202,37 +205,38 @@ export class QRSign {
 
   private handshake = () =>
     this.sendMessage({
-      channel: "/meta/handshake",
-      version: "1.0",
+      channel: '/meta/handshake',
+      version: '1.0',
       supportedConnectionTypes: [
-        "websocket",
-        "eventsource",
-        "long-polling",
-        "cross-origin-long-polling",
-        "callback-polling",
+        'websocket',
+        'eventsource',
+        'long-polling',
+        'cross-origin-long-polling',
+        'callback-polling',
       ],
       id: this.seqId,
     });
 
-  private connect = () =>
+  private connect = () => {
     this.sendMessage({
-      channel: "/meta/connect",
+      channel: '/meta/connect',
       clientId: this.clientId,
-      connectionType: "long-polling",
+      connectionType: 'websocket',
       id: this.seqId,
-      advice: {
-        timeout: 0,
-      },
     });
+  };
 
   private startHeartbeat = (timeout: number) => {
     this.sendMessage();
-    this.interval = setInterval(this.sendMessage, timeout);
+    this.interval = setInterval(() => {
+      this.sendMessage();
+      this.connect();
+    }, timeout / 2);
   };
 
   private subscribe = () =>
     this.sendMessage({
-      channel: "/meta/subscribe",
+      channel: '/meta/subscribe',
       clientId: this.clientId,
       subscription: `/attendance/${this.courseId}/${this.signId}/qr`,
       id: this.seqId,

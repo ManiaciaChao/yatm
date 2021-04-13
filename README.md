@@ -40,6 +40,11 @@ yarn build
   // 用于 GPS 签到（大概是 Google 坐标）
   "lat": 30.511227, // 纬度
   "lon": 114.41021, // 经度
+  //剪贴板指令
+  "clipboard": {
+    "paste": "pbpaste",//paste不为空后openId将从剪贴板获得
+    "copy": "echo {}|pbcopy"//仅在 copy 模式下启用，{} 将被替换为链接
+  },
   "qr": { // 用于二维码签到
     "name": "张三", // 微助教用户名，判断签到是否成功
     // 模式
@@ -47,7 +52,6 @@ yarn build
     //   plain： 终端打印签到URL，微信打开
     //   copy：同 plain，并复制到剪贴板
     "mode": "terminal",
-    "copyCmd": "termux-clipboard-set {}" // 仅在 copy 模式下启用，{} 为占位符
   }
   "ua": "" // 建议使用自己的微信 UA
 }
