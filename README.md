@@ -16,7 +16,7 @@
 - Sign in **WITHOUT any assistance** from your classmates
 - System-level notification support (test on windows 10 & macOS & gnome)
 - Active development
-- <del>Docker support</del>
+- <del>Docker support</del> Incoming!
 
 ## Install
 
@@ -31,7 +31,13 @@ yarn build
 
 ## Configuration
 
-**Edit your `config.json` first:**
+Create a `config.json` fisrt:
+
+```bash
+cp sample.config.json config.json
+```
+
+**Then edit it:**
 
 ```javascript
 {
@@ -41,9 +47,9 @@ yarn build
   "lat": 30.511227, // 纬度
   "lon": 114.41021, // 经度
   //剪贴板指令
-  "clipboard": {
-    "paste": "pbpaste",//paste不为空后openId将从剪贴板获得
-    "copy": "echo {}|pbcopy"//仅在 copy 模式下启用，{} 将被替换为链接
+  "clipboard": { // 读写剪贴板的 CLI command
+    "paste": "pbpaste", // 若不为空，则优先尝试从剪贴板获取 openId
+    "copy": "echo {} | pbcopy", // qr.mode == "copy" 时启用，{} 为占位符
   },
   "qr": { // 用于二维码签到
     "name": "张三", // 微助教用户名，判断签到是否成功

@@ -35,4 +35,8 @@
 
 对于 Android 的 *Play商店版* 微信和 iOS 非国区微信，可以将页面分享到 Facebook……
 
+### 方法四：WeChat for Desktop
+
+桌面端 WeChat 可以直接分享链接，推荐搭配 qr.mode == "copy" 使用。
+
 
