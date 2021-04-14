@@ -1,22 +1,20 @@
 import { question } from 'readline-sync';
-import { notify } from 'node-notifier';
 import { env } from 'process';
 import { activeSign, checkInvaild, ISignInQuery, signIn } from './requests';
 import { CHECK_ALIVE_INTERVAL, config } from './consts';
 import { QRSign } from './QRSign';
-import { sleep, pasteFromClipBoard } from './utils';
-
-const extractOpenId = (str: string) =>
-  str.length === 32 ? str : str.match('openid=(.*?)(?=&|$)')?.[1];
-const sendNotificaition = (message: string) =>
-  notify({ message, title: 'yatm' });
+import {
+  extractOpenId,
+  sendNotificaition,
+  sleep,
+  pasteFromClipBoard,
+} from './utils';
 
 const getOpenId = async () => {
   let openId: string | undefined;
   if (config.clipboard?.paste) {
-    while (1) {
-      const str = pasteFromClipBoard();
-      openId = extractOpenId(str);
+    while (true) {
+      openId = extractOpenId(pasteFromClipBoard());
       if (openId) {
         if (openIdSet.has(openId)) {
           continue;
@@ -43,7 +41,7 @@ const openIdSet = new Set<string>();
 let lastSignId = 0;
 let qrSign: QRSign;
 
-const main = async () => {
+const main = async (openId: string) => {
   return await activeSign(openId)
     .then(async (data) => {
       if (!data.length) {
@@ -112,23 +110,20 @@ const main = async () => {
     });
 };
 
-let openId = '';
-
 (async () => {
+  let openId = '';
   for (;;) {
     if (!openId.length || (await checkInvaild(openId))) {
-      const prompt = 'Wait for valid openId from clipboard';
+      const prompt =
+        'Error: expired or invaild openId! Waiting for new openId from clipboard...';
       sendNotificaition(prompt);
       console.warn(prompt);
       if (!openIdSet.has(openId)) {
         openIdSet.add(openId);
       }
       openId = await getOpenId();
-      // const prompt = `Error: expired or invaild openId`;
-      // sendNotificaition(prompt);
-      // throw prompt;
     }
-    await main();
+    await main(openId);
     await sleep(config.interval);
   }
 })();

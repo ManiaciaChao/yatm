@@ -1,4 +1,5 @@
 import { execSync } from 'child_process';
+import { notify } from 'node-notifier';
 import { config, qr } from './consts';
 
 const placeholder = '{}';
@@ -24,3 +25,9 @@ export const sleep = (ms: number) =>
   new Promise((reslove) => {
     setTimeout(reslove, ms);
   });
+
+export const extractOpenId = (str: string) =>
+  str.length === 32 ? str : str.match('openid=(.*?)(?=&|$)')?.[1];
+  
+export const sendNotificaition = (message: string) =>
+  notify({ message, title: 'yatm' });
