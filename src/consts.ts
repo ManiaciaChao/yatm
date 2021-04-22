@@ -1,6 +1,11 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
+interface IDevtoolsConfig {
+  host?: string;
+  port?: number;
+  local?: boolean;
+}
 interface IConfig {
   interval: number; // ms
   wait: number; // ms
@@ -11,6 +16,8 @@ interface IConfig {
     paste: string;
     copy: string;
   };
+  devtools?: IDevtoolsConfig;
+  verbose?: boolean;
   qr: {
     name?: string;
     mode: 'terminal' | 'plain' | 'copy';
@@ -26,6 +33,7 @@ export const {
     mode: 'terminal',
     copyCmd: undefined,
   },
+  devtools,
 } = config;
 
 export const userAgent =

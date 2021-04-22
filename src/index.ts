@@ -9,10 +9,15 @@ import {
   sleep,
   pasteFromClipBoard,
 } from './utils';
+import { WechatDevtools } from './cdp';
+
+let devtools: WechatDevtools;
 
 const getOpenId = async () => {
   let openId: string | undefined;
-  if (config.clipboard?.paste) {
+  if (config.devtools) {
+    openId = await devtools.generateOpenId();
+  } else if (config.clipboard?.paste) {
     while (true) {
       openId = extractOpenId(pasteFromClipBoard());
       if (openId) {
@@ -41,7 +46,11 @@ const openIdSet = new Set<string>();
 let lastSignId = 0;
 let qrSign: QRSign;
 
-const main = async (openId: string) => {
+const main = async (
+  openId: string,
+  setOpenId: (openId: string) => void,
+  devtools?: WechatDevtools
+) => {
   return await activeSign(openId)
     .then(async (data) => {
       if (!data.length) {
@@ -70,18 +79,20 @@ const main = async (openId: string) => {
           lastSignId = signId;
           sendNotificaition(`WARNING: ${name} QR sign-in is going on!`);
           qrSign?.destory();
-          qrSign = new QRSign({ courseId, signId });
+          qrSign = new QRSign({ courseId, signId, setOpenId, devtools });
           const result = await qrSign.start();
-          const prompt =
-            'Signed in successfully. However, you need to submit new openid!';
 
-          console.log(result);
           signedIdSet.add(signId);
+          console.log(result);
 
-          sendNotificaition(prompt);
-          console.warn(prompt);
-          openId = '';
-          // process.exit(0);
+          if (!config.devtools) {
+            const prompt =
+              'Signed in successfully. However, you need to submit new openid!';
+            sendNotificaition(prompt);
+            console.warn(prompt);
+            setOpenId('');
+          }
+          qrSign?.destory();
         } else {
           let signInQuery: ISignInQuery = { courseId, signId };
           if (isGPS) {
@@ -112,10 +123,19 @@ const main = async (openId: string) => {
 
 (async () => {
   let openId = '';
+  let devtools: WechatDevtools | undefined = undefined;
+  if (config.devtools) {
+    devtools = new WechatDevtools();
+    await devtools.init();
+    openId = (await devtools.generateOpenId())!;
+    console.log(openId);
+  }
   for (;;) {
     if (!openId.length || (await checkInvaild(openId))) {
-      const prompt =
-        'Error: expired or invaild openId! Waiting for new openId from clipboard...';
+      let prompt = 'Error: expired or invaild openId!';
+      if (config.clipboard) {
+        prompt = `${prompt} Waiting for new openId from clipboard...`;
+      }
       sendNotificaition(prompt);
       console.warn(prompt);
       if (!openIdSet.has(openId)) {
@@ -123,7 +143,7 @@ const main = async (openId: string) => {
       }
       openId = await getOpenId();
     }
-    await main(openId);
+    await main(openId, (newId) => (openId = newId), devtools);
     await sleep(config.interval);
   }
 })();

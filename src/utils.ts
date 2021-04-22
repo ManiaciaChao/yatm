@@ -28,6 +28,12 @@ export const sleep = (ms: number) =>
 
 export const extractOpenId = (str: string) =>
   str.length === 32 ? str : str.match('openid=(.*?)(?=&|$)')?.[1];
-  
+
 export const sendNotificaition = (message: string) =>
   notify({ message, title: 'yatm' });
+
+export const urlParamsToObject = (urlParams: string) =>
+  Object.fromEntries(new URLSearchParams(urlParams));
+
+export const debug = (...args: any[]) =>
+  config.verbose && console.debug(...args);

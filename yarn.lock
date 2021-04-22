@@ -99,6 +99,14 @@ camelcase@^5.0.0:
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-5.3.1.tgz#e3c9b31569e106811df242f715725a1f4c494320"
   integrity sha512-L28STB170nwWS63UjtlEOE3dldQApaJXZkOI1uMFfzf3rRuPegHaHesyee+YxQ+W6SvRDQV6UrdOdRiR153wJg==
 
+chrome-remote-interface@^0.30.0:
+  version "0.30.0"
+  resolved "https://registry.npm.taobao.org/chrome-remote-interface/download/chrome-remote-interface-0.30.0.tgz#b9367142b362668ca7c84d642318053ac6f51495"
+  integrity sha1-uTZxQrNiZoynyE1kIxgFOsb1FJU=
+  dependencies:
+    commander "2.11.x"
+    ws "^7.2.0"
+
 cliui@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/cliui/-/cliui-5.0.0.tgz#deefcfdb2e800784aa34f46fa08e06851c7bbbc5"
@@ -126,6 +134,11 @@ combined-stream@^1.0.8:
   integrity sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==
   dependencies:
     delayed-stream "~1.0.0"
+
+commander@2.11.x:
+  version "2.11.0"
+  resolved "https://registry.npm.taobao.org/commander/download/commander-2.11.0.tgz?cache=0&sync_timestamp=1616364041287&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fcommander%2Fdownload%2Fcommander-2.11.0.tgz#157152fd1e7a6c8d98a5b715cf376df928004563"
+  integrity sha1-FXFS/R56bI2YpbcVzzdt+SgARWM=
 
 decamelize@^1.2.0:
   version "1.2.0"
@@ -360,6 +373,11 @@ wrap-ansi@^5.1.0:
     ansi-styles "^3.2.0"
     string-width "^3.0.0"
     strip-ansi "^5.0.0"
+
+ws@^7.2.0:
+  version "7.4.5"
+  resolved "https://registry.npm.taobao.org/ws/download/ws-7.4.5.tgz#a484dd851e9beb6fdb420027e3885e8ce48986c1"
+  integrity sha1-pITdhR6b62/bQgAn44hejOSJhsE=
 
 ws@^7.4.0:
   version "7.4.0"
