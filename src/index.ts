@@ -51,24 +51,28 @@ const getOpenId = async ({ devtools, openIdSet }: IContext) => {
     await ctx.devtools.init();
   }
   for (;;) {
-    if (!ctx.openId.length || (await checkInvaild(ctx.openId))) {
-      let prompt = 'Error: expired or invaild openId!';
-      if (config.clipboard) {
-        prompt = `${prompt} Waiting for new openId from clipboard...`;
-      } else if (ctx.devtools) {
-        prompt = `${prompt} Generating new openId via devtools...`;
+    try {
+      if (!ctx.openId.length || (await checkInvaild(ctx.openId))) {
+        let prompt = 'Error: expired or invaild openId!';
+        if (config.clipboard) {
+          prompt = `${prompt} Waiting for new openId from clipboard...`;
+        } else if (ctx.devtools) {
+          prompt = `${prompt} Generating new openId via devtools...`;
+        }
+        sendNotificaition(prompt);
+        console.warn(prompt);
+        if (!ctx.openIdSet.has(ctx.openId)) {
+          ctx.openIdSet.add(ctx.openId);
+        }
+        ctx.openId = await getOpenId(ctx);
+        console.log('Applied new openId:', ctx.openId);
+        ctx.studentName = await getStudentName(ctx.openId);
+        console.log(ctx.studentName);
       }
-      sendNotificaition(prompt);
-      console.warn(prompt);
-      if (!ctx.openIdSet.has(ctx.openId)) {
-        ctx.openIdSet.add(ctx.openId);
-      }
-      ctx.openId = await getOpenId(ctx);
-      console.log('Applied new openId:', ctx.openId);
-      ctx.studentName = await getStudentName(ctx.openId);
-      console.log(ctx.studentName);
+      await signOnce(ctx);
+      await sleep(config.interval);
+    } catch (err) {
+      console.warn('Error:', err);
     }
-    await signOnce(ctx);
-    await sleep(config.interval);
   }
 })();
