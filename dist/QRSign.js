@@ -8,6 +8,7 @@ const ws_1 = __importDefault(require("ws"));
 const qrcode_1 = require("qrcode");
 const consts_1 = require("./consts");
 const utils_1 = require("./utils");
+const debugLogger = utils_1.makeDebugLogger('QRSign::');
 var QRType;
 (function (QRType) {
     QRType[QRType["default"] = 0] = "default";
@@ -16,7 +17,7 @@ var QRType;
     QRType[QRType["result"] = 3] = "result";
 })(QRType || (QRType = {}));
 class QRSign {
-    constructor(info) {
+    constructor(ctx, info) {
         // fields
         this._seqId = 0;
         this.clientId = '';
@@ -27,13 +28,12 @@ class QRSign {
         this.start = () => new Promise((resolve, reject) => {
             this.startSync(resolve, reject);
         });
-        //
         this.sendMessage = (msg) => {
-            console.log(msg);
+            debugLogger(`sendMessage`, msg);
             const raw = JSON.stringify(msg ? [msg] : []);
             this.client?.send(raw);
         };
-        this.handleQRSubscription = (message) => {
+        this.handleQRSubscription = async (message) => {
             const { data } = message;
             switch (data.type) {
                 case QRType.code: {
@@ -42,6 +42,18 @@ class QRSign {
                         return;
                     }
                     this.currentQRUrl = qrUrl;
+                    // TODO: should devtools conflict with printer?
+                    if (this.ctx.devtools) {
+                        // automation via devtools
+                        const { openId } = await this.ctx.devtools.finishQRSign(qrUrl);
+                        // reset openId is mandatory, for scanning QR code triggering another oauth
+                        this.ctx.openId = openId;
+                        // Currently, QRType.result is still used for more infomations
+                        // if (result.success) {
+                        //   this.onSuccess?.({} as IQRStudentResult);
+                        // }
+                    }
+                    // manually print or execute command
                     switch (consts_1.qr.mode) {
                         case 'terminal': {
                             qrcode_1.toString(this.currentQRUrl, { type: 'terminal' }).then(console.log);
@@ -61,7 +73,8 @@ class QRSign {
                 }
                 case QRType.result: {
                     const { student } = data;
-                    if (student && student.name === consts_1.qr.name) {
+                    // TODO: get student info from devtools
+                    if (student && student.name === this.ctx.studentName) {
                         this.onSuccess?.(student);
                     }
                     break;
@@ -82,7 +95,7 @@ class QRSign {
                 if (!successful) {
                     // qr subscription
                     if (QRSign.testQRSubscription(message)) {
-                        console.log(`${channel}: successful!`);
+                        debugLogger(`${channel}: successful!`);
                         this.handleQRSubscription(message);
                     }
                     else {
@@ -90,7 +103,7 @@ class QRSign {
                     }
                 }
                 else {
-                    console.log(`${channel}: successful!`);
+                    debugLogger(`${channel}: successful!`);
                     switch (message.channel) {
                         case '/meta/handshake': {
                             const { clientId } = message;
@@ -114,7 +127,7 @@ class QRSign {
                 }
             }
             catch (err) {
-                console.log(`QR: ${err}`);
+                console.error(`QR: ${err}`);
             }
         };
         this.handshake = () => this.sendMessage({
@@ -152,6 +165,7 @@ class QRSign {
         });
         this.courseId = info.courseId;
         this.signId = info.signId;
+        this.ctx = ctx;
     }
     startSync(cb, err) {
         this.onError = err ?? null;
@@ -161,7 +175,7 @@ class QRSign {
             this.handshake();
         });
         this.client.on('message', (data) => {
-            console.log(data);
+            debugLogger(`receiveMessage`, data);
             this.handleMessage(data.toString());
         });
         this.onError && this.client.on('error', this.onError);

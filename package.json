@@ -1,21 +1,21 @@
 {
   "description": "yet another teachermate helper",
   "license": "MIT",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "scripts": {
-    "start": "tsc && node ./dist/index.js",
+    "start": "node ./dist/index.js",
     "build": "tsc"
   },
   "devDependencies": {
     "@types/node": "^14.10.3",
     "@types/node-fetch": "^2.5.7",
     "@types/node-notifier": "^8.0.0",
+    "@types/qrcode": "^1.3.5",
     "@types/readline-sync": "^1.4.3",
     "@types/ws": "^7.4.0",
     "typescript": "^4.0.2"
   },
   "dependencies": {
-    "@types/qrcode": "^1.3.5",
     "chrome-remote-interface": "^0.30.0",
     "node-fetch": "^2.6.1",
     "node-notifier": "^8.0.0",

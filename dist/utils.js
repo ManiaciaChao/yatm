@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendNotificaition = exports.extractOpenId = exports.sleep = exports.pasteFromClipBoard = exports.copyToClipBoard = void 0;
+exports.makeDebugLogger = exports.debugLogger = exports.urlParamsToObject = exports.sendNotificaition = exports.extractOpenId = exports.sleep = exports.pasteFromClipBoard = exports.copyToClipBoard = void 0;
 const child_process_1 = require("child_process");
 const node_notifier_1 = require("node-notifier");
 const consts_1 = require("./consts");
 const placeholder = '{}';
-exports.copyToClipBoard = (text) => {
+const copyToClipBoard = (text) => {
     if (!text || !consts_1.config.clipboard?.copy)
         return;
     const copyCmd = consts_1.config.clipboard.copy;
@@ -16,15 +16,27 @@ exports.copyToClipBoard = (text) => {
         throw 'wrong format for copyCmd!';
     }
 };
-exports.pasteFromClipBoard = () => {
+exports.copyToClipBoard = copyToClipBoard;
+const pasteFromClipBoard = () => {
     if (!consts_1.config.clipboard?.paste) {
         return '';
     }
     const pasteCmd = consts_1.config.clipboard.paste;
     return child_process_1.execSync(pasteCmd).toString();
 };
-exports.sleep = (ms) => new Promise((reslove) => {
+exports.pasteFromClipBoard = pasteFromClipBoard;
+const sleep = (ms) => new Promise((reslove) => {
     setTimeout(reslove, ms);
 });
-exports.extractOpenId = (str) => str.length === 32 ? str : str.match('openid=(.*?)(?=&|$)')?.[1];
-exports.sendNotificaition = (message) => node_notifier_1.notify({ message, title: 'yatm' });
+exports.sleep = sleep;
+const extractOpenId = (str) => str.length === 32 ? str : str.match('openid=(.*?)(?=&|$)')?.[1];
+exports.extractOpenId = extractOpenId;
+const sendNotificaition = (message) => node_notifier_1.notify({ message, title: 'yatm' });
+exports.sendNotificaition = sendNotificaition;
+const urlParamsToObject = (urlParams) => Object.fromEntries(new URLSearchParams(urlParams));
+exports.urlParamsToObject = urlParamsToObject;
+// verbose
+const debugLogger = (...args) => consts_1.config.verbose && console.debug(...args);
+exports.debugLogger = debugLogger;
+const makeDebugLogger = (prefix) => (...args) => exports.debugLogger(prefix, ...args);
+exports.makeDebugLogger = makeDebugLogger;
