@@ -51,12 +51,6 @@ cp sample.config.json config.json
     "paste": "pbpaste", // 若不为空，则优先尝试从剪贴板获取 openId
     "copy": "echo {} | pbcopy", // qr.mode == "copy" 时启用，{} 为占位符
   },
-  // devtools 自动化，选填。
-  "devtools":{ // 其中字段选填
-    "host": "127.0.0.1", // 默认值 127.0.0.1
-    "port": 8000; // 默认值 8000
-    "local": true; // 默认值222 true
-  },
   "qr": { // 用于二维码签到
     // 模式
     //   terminal: 终端打印二维码，微信扫码
