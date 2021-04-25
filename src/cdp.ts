@@ -1,5 +1,4 @@
 import CDP = require('chrome-remote-interface');
-import { CDPSession } from 'puppeteer-core';
 import { extractOpenId, sleep, urlParamsToObject } from './utils';
 
 const baseConfig = {
@@ -8,7 +7,7 @@ const baseConfig = {
   host: '127.0.0.1',
 };
 
-interface IWechatDevtoolOptions {
+export interface IWechatDevtoolOptions {
   host: string;
   port: number;
   local: boolean;

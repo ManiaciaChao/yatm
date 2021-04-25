@@ -13,7 +13,7 @@ export const copyToClipBoard = (text?: string) => {
   }
 };
 
-export const pasteFromClipBoard = (): string => {
+export const pasteFromClipBoard = () => {
   if (!config.clipboard?.paste) {
     return '';
   }
@@ -35,5 +35,9 @@ export const sendNotificaition = (message: string) =>
 export const urlParamsToObject = (urlParams: string) =>
   Object.fromEntries(new URLSearchParams(urlParams));
 
-export const debug = (...args: any[]) =>
+// verbose
+export const debugLogger = (...args: any[]) =>
   config.verbose && console.debug(...args);
+
+export const makeDebugLogger = (prefix: string) => (...args: any[]) =>
+  debugLogger(prefix, ...args);

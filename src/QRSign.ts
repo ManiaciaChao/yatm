@@ -2,8 +2,11 @@ import WebSocket from 'ws';
 import { toString as toQR } from 'qrcode';
 import { IBasicSignInfo } from './requests';
 import { qr } from './consts';
-import { copyToClipBoard, debug } from './utils';
+import { copyToClipBoard, makeDebugLogger } from './utils';
 import { WechatDevtools } from './cdp';
+import { IContext } from './sign';
+
+const debugLogger = makeDebugLogger('QRSign::');
 
 interface IChannelMessage {
   id: string;
@@ -70,21 +73,19 @@ export class QRSign {
   private signId: number;
   private clientId = '';
   private client: WebSocket | null = null;
-  private devtools: WechatDevtools | null = null;
   private interval: NodeJS.Timeout | undefined;
   private onError: errorCallback | null = null;
   private onSuccess: successCallback | null = null;
-  private setOpenId: ((openId: string) => void) | null = null;
+  private ctx: IContext;
   private currentQRUrl = '';
 
   static testQRSubscription = (msg: IChannelMessage): msg is IQRMessage =>
     /attendance\/\d+\/\d+\/qr/.test(msg.channel);
 
-  constructor(info: IQRSignOptions) {
+  constructor(ctx: IContext, info: IQRSignOptions) {
     this.courseId = info.courseId;
     this.signId = info.signId;
-    this.setOpenId = info.setOpenId ?? null;
-    this.devtools = info.devtools ?? null;
+    this.ctx = ctx;
   }
 
   startSync(cb?: successCallback, err?: (err: any) => void) {
@@ -96,7 +97,7 @@ export class QRSign {
       this.handshake();
     });
     this.client.on('message', (data) => {
-      debug(data);
+      debugLogger(`receiveMessage`, data);
       this.handleMessage(data.toString());
     });
     this.onError && this.client.on('error', this.onError);
@@ -118,10 +119,9 @@ export class QRSign {
   private get seqId() {
     return `${this._seqId++}`;
   }
-  //
 
   private sendMessage = (msg?: object) => {
-    debug(`QRSign::sendMessage`, msg);
+    debugLogger(`sendMessage`, msg);
     const raw = JSON.stringify(msg ? [msg] : []);
     this.client?.send(raw);
   };
@@ -135,35 +135,40 @@ export class QRSign {
           return;
         }
         this.currentQRUrl = qrUrl;
-        if (this.devtools) {
-          const result = await this.devtools.finishQRSign(qrUrl);
-          this.setOpenId?.(result.openId);
-          if (result.success) {
-            this.onSuccess?.({} as IQRStudentResult);
+        // TODO: should devtools conflict with printer?
+        if (this.ctx.devtools) {
+          // automation via devtools
+          const { openId } = await this.ctx.devtools.finishQRSign(qrUrl);
+          // reset openId is mandatory, for scanning QR code triggering another oauth
+          this.ctx.openId = openId;
+          // Currently, QRType.result is still used for more infomations
+          // if (result.success) {
+          //   this.onSuccess?.({} as IQRStudentResult);
+          // }
+        }
+        // manually print or execute command
+        switch (qr.mode) {
+          case 'terminal': {
+            toQR(this.currentQRUrl, { type: 'terminal' }).then(console.log);
+            break;
           }
-        } else {
-          switch (qr.mode) {
-            case 'terminal': {
-              toQR(this.currentQRUrl, { type: 'terminal' }).then(console.log);
-              break;
-            }
-            case 'copy': {
-              copyToClipBoard(this.currentQRUrl);
-            }
-            case 'plain': {
-              console.log(this.currentQRUrl);
-              break;
-            }
-            default:
-              break;
+          case 'copy': {
+            copyToClipBoard(this.currentQRUrl);
           }
+          case 'plain': {
+            console.log(this.currentQRUrl);
+            break;
+          }
+          default:
+            break;
         }
 
         break;
       }
       case QRType.result: {
         const { student } = data;
-        if (student && student.name === qr.name) {
+        // TODO: get student info from devtools
+        if (student && student.name === this.ctx.studentName) {
           this.onSuccess?.(student);
         }
         break;
@@ -186,13 +191,13 @@ export class QRSign {
       if (!successful) {
         // qr subscription
         if (QRSign.testQRSubscription(message)) {
-          debug(`QRSign:: ${channel}: successful!`);
+          debugLogger(`${channel}: successful!`);
           this.handleQRSubscription(message);
         } else {
           throw `${channel}: failed!`;
         }
       } else {
-        debug(`QRSign:: ${channel}: successful!`);
+        debugLogger(`${channel}: successful!`);
         switch (message.channel) {
           case '/meta/handshake': {
             const { clientId } = message as IHandShakeMessage;
