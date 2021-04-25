@@ -13,7 +13,7 @@ export const copyToClipBoard = (text?: string) => {
   }
 };
 
-export const pasteFromClipBoard = (): string => {
+export const pasteFromClipBoard = () => {
   if (!config.clipboard?.paste) {
     return '';
   }
@@ -28,6 +28,16 @@ export const sleep = (ms: number) =>
 
 export const extractOpenId = (str: string) =>
   str.length === 32 ? str : str.match('openid=(.*?)(?=&|$)')?.[1];
-  
+
 export const sendNotificaition = (message: string) =>
   notify({ message, title: 'yatm' });
+
+export const urlParamsToObject = (urlParams: string) =>
+  Object.fromEntries(new URLSearchParams(urlParams));
+
+// verbose
+export const debugLogger = (...args: any[]) =>
+  config.verbose && console.debug(...args);
+
+export const makeDebugLogger = (prefix: string) => (...args: any[]) =>
+  debugLogger(prefix, ...args);

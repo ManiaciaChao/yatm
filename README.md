@@ -13,7 +13,7 @@
 ## Features
 
 - Multi-mode sign-in support: normal, GPS and QR code.
-- Sign in **WITHOUT any assistance** from your classmates
+- Automatically sign in **WITHOUT any assistance** from your classmates
 - System-level notification support (test on windows 10 & macOS & gnome)
 - Active development
 - <del>Docker support</del> Incoming!
@@ -41,7 +41,7 @@ cp sample.config.json config.json
 
 ```javascript
 {
-  "interval": 3000, // 签到检测轮询间隔，单位 ms
+  "interval": 10000, // 签到检测轮询间隔，单位 ms
   "wait": 5000,     // 检测到签到后等待时长，单位 ms
   // 用于 GPS 签到（大概是 Google 坐标）
   "lat": 30.511227, // 纬度
@@ -52,7 +52,6 @@ cp sample.config.json config.json
     "copy": "echo {} | pbcopy", // qr.mode == "copy" 时启用，{} 为占位符
   },
   "qr": { // 用于二维码签到
-    "name": "张三", // 微助教用户名，判断签到是否成功
     // 模式
     //   terminal: 终端打印二维码，微信扫码
     //   plain： 终端打印签到URL，微信打开
@@ -68,7 +67,7 @@ cp sample.config.json config.json
 
 ### Get your `openId`
 
-Get your `openId` from WeChat official account `微助教服务号`. [How?](./AcquireOpenID.md)
+Get your `openId` from WeChat official account `微助教服务号`. [How?](./docs/AcquireOpenID.md)
 
 **Notice that `openId` will expire after thousands of requests or another entrace from WeChat.**
 
@@ -101,6 +100,17 @@ You're expected to scan the QR code **manually via WeChat** from your console.
 Attention that **the script WILL EXIT INSTANTLY when success, because a QR scan
 via WeChat will causes the update of `openId`. You have to reacquire your new
 `openId` and run this script again!**
+
+### *Experimental* Devtools Protocol
+
+Due to the limitation of WeChat API, the following WeChat-related processes can't be simulated:
+
+* generate new `openId`
+* simulate the QR scanning
+
+However, [Devtools Protocol](https://chromedevtools.github.io/devtools-protocol/) can help automatize the whole thing.
+
+Check [this](./docs/DevtoolsProtocol.md) for more details.
 
 ## Author
 
