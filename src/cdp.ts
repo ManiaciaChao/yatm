@@ -1,4 +1,5 @@
 import CDP = require('chrome-remote-interface');
+import { userAgent } from './consts';
 import { extractOpenId, sleep, urlParamsToObject } from './utils';
 
 const baseConfig = {
@@ -63,6 +64,7 @@ export class WechatDevtools {
     const { Network, Page, Runtime } = this.cdp;
     await Network.enable();
     await Page.enable();
+    await this.cdp.Network.setUserAgentOverride({ userAgent });
 
     return this.cdp;
   };
