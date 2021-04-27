@@ -36,9 +36,9 @@ enum QRType {
 }
 
 interface IQRStudentResult {
-  id: number;
-  name: string;
-  studentNumber: string;
+  id?: number;
+  name?: string;
+  studentNumber?: string;
   rank: number;
   // teamId: 0;
   // isNew: false;
@@ -138,13 +138,13 @@ export class QRSign {
         // TODO: should devtools conflict with printer?
         if (this.ctx.devtools) {
           // automation via devtools
-          const { openId } = await this.ctx.devtools.finishQRSign(qrUrl);
+          const result = await this.ctx.devtools.finishQRSign(qrUrl);
           // reset openId is mandatory, for scanning QR code triggering another oauth
-          this.ctx.openId = openId;
-          // Currently, QRType.result is still used for more infomations
-          // if (result.success) {
-          //   this.onSuccess?.({} as IQRStudentResult);
-          // }
+          this.ctx.openId = result.openId;
+          // race with QRType.result
+          if (result.success) {
+            this.onSuccess?.(result as IQRStudentResult);
+          }
         }
         // manually print or execute command
         switch (qr.mode) {

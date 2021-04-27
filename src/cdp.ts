@@ -111,7 +111,7 @@ export class WechatDevtools {
     return {
       success: result.success === '1',
       openId: result.openid,
-      rank: result.studentRank,
+      rank: +result.studentRank,
     };
   };
 }
