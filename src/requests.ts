@@ -89,7 +89,7 @@ export const studentsRole = (openId: string) =>
     {
       headers: {
         ...baseHeaders,
-        openid: openId, // funny when they use `openid` and `openId` both
+        openId,
         Referrer: `https://v18.teachermate.cn/wechat-pro/student/archive/lists?openid=${openId}`,
       },
       method: 'GET',
@@ -102,7 +102,7 @@ const studentInfo = (openId: string) =>
     {
       headers: {
         ...baseHeaders,
-        openid: openId,
+        openId,
         Referrer: `https://v18.teachermate.cn/wechat-pro/student/edit?openid=${openId}`,
       },
       method: 'GET',

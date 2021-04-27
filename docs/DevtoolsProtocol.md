@@ -26,6 +26,8 @@ CallWeChat()
 
 I don't know how to make this work on Apple things.
 
+https://github.com/RemoteDebug/remotedebug-ios-webkit-adapter
+
 ### Android
 
 USB/Wireless debugging is required to be enabled.
@@ -46,9 +48,14 @@ List of devices attached
 ```
 
 Forward to localhost:
+
 ```shell
-$ adb shell ps | grep com.tencent.mm:tools | awk '{print $2}' | xargs -I @ adb -s <DEVICE_NAME> forward tcp:<PORT> localabstract:webview_devtools_remote_@
+# stop WeChat instance first
+$ adb shell am force-stop com.tencent.mm
+# after manually start WeChat:
+$ adb shell ps | grep com.tencent.mm:toolsmp | awk '{print $2}' | xargs -I @ adb -s <DEVICE_NAME> forward tcp:<PORT> localabstract:webview_devtools_remote_@
 ```
+
 ## Configuration
 
 Open `http://localhost:<PORT>/json` to see if remote debugging works.
@@ -68,7 +75,7 @@ or with your custom host & port:
 ```javascript
 {
   // ...
-  "devtools":{ // 
+  "devtools":{ //
     "host": "127.0.0.1", // Optional, 127.0.0.1 by default
     "port": <PORT>, // Optional, 8000 by default
     "local": true, // Optional, true by default
