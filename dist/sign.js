@@ -5,7 +5,7 @@ const requests_1 = require("./requests");
 const consts_1 = require("./consts");
 const QRSign_1 = require("./QRSign");
 const utils_1 = require("./utils");
-const signOnce = async (ctx) => {
+exports.signOnce = async (ctx) => {
     return await requests_1.activeSign(ctx.openId)
         .then(async (data) => {
         if (!data.length) {
@@ -68,4 +68,3 @@ const signOnce = async (ctx) => {
         console.log(e);
     });
 };
-exports.signOnce = signOnce;

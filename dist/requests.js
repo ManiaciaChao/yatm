@@ -13,7 +13,7 @@ const baseHeaders = {
     'Accept-Language': 'zh-CN,en-US;qbaseHeaders=0.7,en;q=0.3',
 };
 const request = (url, init) => node_fetch_1.default(url, init).then((data) => data.json());
-const activeSign = (openId) => request('https://v18.teachermate.cn/wechat-api/v1/class-attendance/student/active_signs', {
+exports.activeSign = (openId) => request('https://v18.teachermate.cn/wechat-api/v1/class-attendance/student/active_signs', {
     headers: {
         ...baseHeaders,
         openId,
@@ -22,8 +22,7 @@ const activeSign = (openId) => request('https://v18.teachermate.cn/wechat-api/v1
     },
     method: 'GET',
 });
-exports.activeSign = activeSign;
-const signIn = (openId, query) => request('https://v18.teachermate.cn/wechat-api/v1/class-attendance/student-sign-in', {
+exports.signIn = (openId, query) => request('https://v18.teachermate.cn/wechat-api/v1/class-attendance/student-sign-in', {
     headers: {
         ...baseHeaders,
         openId,
@@ -32,28 +31,24 @@ const signIn = (openId, query) => request('https://v18.teachermate.cn/wechat-api
     body: JSON.stringify(query),
     method: 'POST',
 });
-exports.signIn = signIn;
-const studentsRole = (openId) => request('https://v18.teachermate.cn/wechat-api/v2/students/role', {
+exports.studentsRole = (openId) => request('https://v18.teachermate.cn/wechat-api/v2/students/role', {
     headers: {
         ...baseHeaders,
-        openid: openId,
+        openId,
         Referrer: `https://v18.teachermate.cn/wechat-pro/student/archive/lists?openid=${openId}`,
     },
     method: 'GET',
 });
-exports.studentsRole = studentsRole;
 const studentInfo = (openId) => request('https://v18.teachermate.cn/wechat-api/v2/students', {
     headers: {
         ...baseHeaders,
-        openid: openId,
+        openId,
         Referrer: `https://v18.teachermate.cn/wechat-pro/student/edit?openid=${openId}`,
     },
     method: 'GET',
 });
-const getStudentName = (openId) => studentInfo(openId).then((resp) => resp[0].find((item) => item.item_name === 'name').item_value);
-exports.getStudentName = getStudentName;
-const checkInvaild = async (openId) => {
+exports.getStudentName = (openId) => studentInfo(openId).then((resp) => resp[0].find((item) => item.item_name === 'name').item_value);
+exports.checkInvaild = async (openId) => {
     const data = await exports.studentsRole(openId);
     return 'message' in data || data.length === 0;
 };
-exports.checkInvaild = checkInvaild;
