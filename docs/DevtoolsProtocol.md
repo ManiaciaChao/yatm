@@ -6,7 +6,7 @@
 
 ### Windows
 
-Launch WeChat with command line argument `--remote-debugging-port=<PORT>` (using port 8000 for example).
+Launch WeChat with command line argument `-remote-debugging-port=<PORT>` (using port 8000 for example).
 
 ### Wine
 
@@ -18,7 +18,7 @@ On archlinux, it's function `CallWeChat()` in `~/.deepinwine/deepin-wine-helper/
 CallWeChat()
 {
     # ...
-    CallProcess "$@" "--remote-debugging-port=<PORT>"
+    CallProcess "$@" "-remote-debugging-port=<PORT>"
 }
 ```
 
@@ -30,7 +30,14 @@ I don't know how to make this work on Apple things.
 
 USB/Wireless debugging is required to be enabled.
 
-Check your connections:
+In WeChat browser:
+
+1. Open [debugmm.qq.com/?forcex5=true](debugmm.qq.com/?forcex5=true) to enable x5 core.
+2. Open [http://debugtbs.qq.com/](http://debugtbs.qq.com/) to install x5 core.
+3. Open [http://debugx5.qq.com/](http://debugx5.qq.com/). In `信息` tab, check option `打开TBS内核Inspector调试功能`.
+4. Restart WeChat.
+
+Check your `adb` connections:
 
 ```shell
 $ adb devices
@@ -40,23 +47,15 @@ List of devices attached
 
 Forward to localhost:
 ```shell
-$ adb -s <DEVICE_NAME> forward tcp:<PORT> localabstract:chrome_devtools_remote
+$ adb shell ps | grep com.tencent.mm:tools | awk '{print $2}' | xargs -I @ adb -s <DEVICE_NAME> forward tcp:<PORT> localabstract:webview_devtools_remote_@
 ```
-
-In WeChat browser:
-
-1. Open [debugmm.qq.com/?forcex5=true](debugmm.qq.com/?forcex5=true) to enable x5 core.
-2. Open [http://debugtbs.qq.com/](http://debugtbs.qq.com/) to install x5 core.
-3. Open [http://debugx5.qq.com/](http://debugx5.qq.com/). In `信息` tab, check option `打开TBS内核Inspector调试功能`.
-4. Restart WeChat.
-
 ## Configuration
 
 Open `http://localhost:<PORT>/json` to see if remote debugging works.
 
 Add field `devtools` into your `config.json`
 
-```json
+```javascript
 {
   // ...
   "devtools": {},
@@ -66,7 +65,7 @@ Add field `devtools` into your `config.json`
 
 or with your custom host & port:
 
-```json
+```javascript
 {
   // ...
   "devtools":{ // 
@@ -76,4 +75,14 @@ or with your custom host & port:
   },
   // ...
 }
+```
+
+## Usage
+
+Open any webpage in your WeChat, then you can have it running in background.
+
+Run the script:
+
+```shell
+yarn start
 ```
