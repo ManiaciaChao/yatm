@@ -8,6 +8,8 @@
 
 Launch WeChat with command line argument `-remote-debugging-port=<PORT>` (using port 8000 for example).
 
+**No longer working for WeChat 3.2.1 and above.** Go find an out-dated version plz :)
+
 ### Wine
 
 Basically the same as Windows, but you have to find out the right file to edit.
