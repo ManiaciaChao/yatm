@@ -36,10 +36,7 @@ USB/Wireless debugging is required to be enabled.
 
 In WeChat browser:
 
-1. Open [debugmm.qq.com/?forcex5=true](debugmm.qq.com/?forcex5=true) to enable x5 core.
-2. Open [http://debugtbs.qq.com/](http://debugtbs.qq.com/) to install x5 core.
-3. Open [http://debugx5.qq.com/](http://debugx5.qq.com/). In `信息` tab, check option `打开TBS内核Inspector调试功能`.
-4. Restart WeChat.
+1. Open <http://debugxweb.qq.com/?inspector=true> and don't close it
 
 Check your `adb` connections:
 
@@ -52,10 +49,9 @@ List of devices attached
 Forward to localhost:
 
 ```shell
-# stop WeChat instance first
-$ adb shell am force-stop com.tencent.mm
-# after manually start WeChat:
-$ adb shell ps | grep com.tencent.mm:toolsmp | awk '{print $2}' | xargs -I @ adb -s <DEVICE_NAME> forward tcp:<PORT> localabstract:webview_devtools_remote_@
+unix_sockets=$(adb shell "cat /proc/net/unix")
+devtools_port=$(echo "$unix_sockets" | grep -o 'webview_devtools_remote_[0-9]*' | grep -o '[0-9]*')
+adb -s <DEVICE_NAME> forward tcp:<PORT> localabstract:webview_devtools_remote_$devtools_port
 ```
 
 ## Configuration
