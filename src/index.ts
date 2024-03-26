@@ -47,7 +47,7 @@ const getOpenId = async ({ devtools, openIdSet }: IContext) => {
     openIdSet: new Set(),
   };
   if (config.devtools) {
-    ctx.devtools = new WechatDevtools();
+    ctx.devtools = new WechatDevtools(config.devtools);
     await ctx.devtools.init();
   }
   for (;;) {

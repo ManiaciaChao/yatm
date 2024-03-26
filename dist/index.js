@@ -42,7 +42,7 @@ const getOpenId = async ({ devtools, openIdSet }) => {
         openIdSet: new Set(),
     };
     if (consts_1.config.devtools) {
-        ctx.devtools = new cdp_1.WechatDevtools();
+        ctx.devtools = new cdp_1.WechatDevtools(consts_1.config.devtools);
         await ctx.devtools.init();
     }
     for (;;) {
