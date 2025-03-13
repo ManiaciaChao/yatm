@@ -28,7 +28,7 @@ yarn build
 
 ## Configuration
 
-Create a `config.json` fisrt:
+Create a `config.json` first:
 
 ```bash
 cp sample.config.json config.json
